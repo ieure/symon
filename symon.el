@@ -395,8 +395,8 @@ This method is called when activating `symon-mode'."
 (defclass symon-linux-cpu (symon-monitor-history)
   ((last-total-ticks :type integer :initform 0)
    (last-idle-ticks :type integer :initform 0)
-   (display-opts :type list
-                 :initform '(:index "CPU:" :unit "%" :sparkline t))))
+   (default-display-opts :type list
+     :initform '(:index "CPU:" :unit "%" :sparkline t))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-linux-cpu))
   (cl-destructuring-bind (cpu)
