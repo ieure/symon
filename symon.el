@@ -218,8 +218,7 @@ static char * sparkline_xpm[] = { \"%d %d 2 1\", \"@ c %s\", \". c none\""
 
 ;;   + symon monitor generator
 
-;; a symon monitor is internally a symbol with property 'symon-monitor
-;; associated to a vector of 3 functions: [SETUP-FN CLEANUP-FN
+;; a symon monitor is a vector of 3 functions: [SETUP-FN CLEANUP-FN
 ;; DISPLAY-FN]. SETUP-FN is called on activation of `symon-mode', and
 ;; expected to setup Emacs to fetch status values in a specific
 ;; interval. CLEANUP-FN is called on deactivation and expected to tell
@@ -325,7 +324,7 @@ supoprted in PLIST:
                                    (setq sparkline
                                          (symon--convert-sparkline-to-xpm sparkline)))
                                  (concat (propertize " " 'display sparkline) " "))))))))))
-    `(put ',name 'symon-monitor (vector ,setup-fn ,cleanup-fn ,display-fn))))
+    `(setq ',name (vector ,setup-fn ,cleanup-fn ,display-fn))))
 
 ;;   + process management
 
@@ -676,12 +675,7 @@ while(1)                                                            \
           (if (symbolp (car symon-monitors))
               (list symon-monitors)
             symon-monitors))
-         (monitors
-          (mapcar (lambda (lst)
-                    (mapcar (lambda (s) (get s 'symon-monitor)) lst))
-                  symon-monitors))
-         (monitors-flattened
-          (symon--flatten monitors)))
+         (monitors-flattened (symon--flatten symon-monitors)))
     (mapc (lambda (m) (funcall (aref m 0))) monitors-flattened) ; setup-fns
     (setq symon--cleanup-fns    (mapcar (lambda (m) (aref m 1)) monitors-flattened)
           symon--display-fns    (mapcar (lambda (l) (mapcar (lambda (m) (aref m 2)) l)) monitors)
