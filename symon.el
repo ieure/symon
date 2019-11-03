@@ -229,6 +229,74 @@ static char * sparkline_xpm[] = { \"%d %d 2 1\", \"@ c %s\", \". c none\""
   "like `(make-ring symon-history-size)' but filled with `nil'."
   (cons 0 (cons symon-history-size (make-vector symon-history-size nil))))
 
+(defclass symon-monitor ()
+  ((interval :type int
+             :initform symon-refresh-rate
+             :initval :interval
+             :documentation "Fetch interval in seconds.")
+   (display-opts :type list
+                 :initform nil
+                 :initval :display-opts
+                 :documentation "plist of options controlling monitor display")
+
+   ;; Internal slots
+
+   (timer
+    :documentation "Fires `symon-monitor-fetch' for this monitor.")
+   (history
+    :initform (symon--make-history-ring)
+    :documentation "Ring of monitor values"))
+
+  :abstract t
+  :documentation "Base (default) Symon monitor class.")
+
+(cl-defmethod symon-monitor-setup ((this symon-monitor))
+  "Setup this monitor.
+   This method is called when activating `symon-mode'."
+
+  (oset this timer
+        (run-with-timer
+         0 (oref this interval)
+         (lambda ()
+           (ring-insert (oref this history) (symon-monitor-fetch this))))))
+
+(cl-defmethod symon-monitor-cleanup ((this symon-monitor))
+  "Cleanup the monitor.
+
+   This method is called when deactivating `symon-mode'."
+  (cancel-timer (oref this timer))
+  (oset this timer nil))
+
+(cl-defmethod symon-monitor-fetch ((this symon-monitor))
+  "Fetch the current monitor value.")
+
+(defun symon--plist->let (plist)
+  (let ((plist (copy-list plist))
+        (let-binds))
+    (while plist
+      (thread-first
+          (list (make-symbol (substring (symbol-name (pop plist)) 1))
+                (pop plist))
+        (push let-binds)))
+    (nreverse let-binds)))
+
+(cl-defmethod symon-monitor-display ((this symon-monitor))
+  (eval
+   `(let ((lst (car (ring-elements (oref this history))))
+          ,@(symon--plist->let (oref this display-opts)))
+      (concat index
+              (if (not (numberp val)) "N/A "
+                (concat (format "%d%s " val unit)
+                        (when annotation
+                          (concat "(" annotation ") "))))
+              (when (and sparkline (window-system))
+                (let ((sparkline (symon--make-sparkline
+                                  lst lower-bound upper-bound)))
+                  (when symon-sparkline-use-xpm
+                    (setq sparkline
+                          (symon--convert-sparkline-to-xpm sparkline)))
+                  (concat (propertize " " 'display sparkline) " ")))))))
+
 (defmacro define-symon-monitor (name &rest plist)
   "define a new symon monitor NAME. following keywords are
 supoprted in PLIST:
