@@ -66,25 +66,43 @@ BEFORE enabling `symon-mode'.*"
   :group 'symon)
 
 (defcustom symon-monitors
-  (cond ((memq system-type '(gnu/linux cygwin))
-         '(symon-linux-memory-monitor
-           symon-linux-cpu-monitor
-           symon-linux-network-rx-monitor
-           symon-linux-network-tx-monitor))
+  (list (cond ((memq system-type '(gnu/linux cygwin))
+         '(symon-linux-memory
+           symon-linux-cpu
+           symon-linux-network-rx
+           symon-linux-network-tx))
         ((memq system-type '(darwin))
-         '(symon-darwin-memory-monitor
-           symon-darwin-cpu-monitor
-           symon-darwin-network-rx-monitor
-           symon-darwin-network-tx-monitor))
+         '(symon-darwin-memory
+           symon-darwin-cpu
+           symon-darwin-network-rx
+           symon-darwin-network-tx))
         ((memq system-type '(windows-nt))
-         '(symon-windows-memory-monitor
-           symon-windows-cpu-monitor
-           symon-windows-network-rx-monitor
-           symon-windows-network-tx-monitor)))
-  "List of monitors used to read system statuses. This variable
-  also can be a list of lists from version 1.2, that case
-  monitors are displayed in multiple pages. *set this option
-  BEFORE enabling `symon-mode'.*")
+         '(symon-windows-memory
+           symon-windows-cpu
+           symon-windows-network-rx
+           symon-windows-network-tx))))
+
+  "List of list of monitors.
+
+Each outer list is a page.  Symon rotates through pages as it redisplays.
+
+Each inner list is a list of monitors.  Members of that list
+are anything which `symon--instantiate' knows how to produce a
+monitor from:
+
+- A symbol which is bound to a monitor class.  The class will be
+  instantiated with no arguments.
+- A symbol which is bound to a monitor object.
+- A monitor object itself (not recommended).
+- An expression which evaluates to one of the above."
+
+  :group 'symon
+  :risky t
+  :type '(repeat
+          (repeat :tag "Page of monitors"
+                  (choice
+                   (symbol :tag "Class or object")
+                   (sexp)))))
 
 ;; sparkline
 
