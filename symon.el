@@ -742,13 +742,13 @@ while(1)                                                            \
     (setq symon--display-active t)))
 
 (defun symon-display ()
-  "activate symon display."
+  "Activate symon display."
   (interactive)
   (setq symon--active-page 0)
   (symon--display-update))
 
 (defun symon--redisplay ()
-  "update symon display."
+  "Update symon display."
   (when symon--display-active
     (setq symon--active-page (% (1+ symon--active-page) symon--total-page-num))
     (symon--display-update)))
@@ -759,7 +759,7 @@ while(1)                                                            \
 
 ;;;###autoload
 (define-minor-mode symon-mode
-  "tiny graphical system monitor"
+  "Tiny graphical system monitor"
   :init-value nil
   :global t
   (if symon-mode (symon--initialize) (symon--cleanup)))
