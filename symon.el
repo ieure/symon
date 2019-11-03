@@ -315,8 +315,11 @@ This method is called when activating `symon-mode'."
   (oset this history (symon--make-history-ring (oref this history-size)))
   (cl-call-next-method))
 
+(cl-defmethod symon-monitor-history ((this symon-monitor-history))
+  (oref this history))
+
 (cl-defmethod symon-monitor-value ((this symon-monitor-history))
-  (car (oref this symon-monitor-history)))
+  (car (symon-monitor-history this)))
 
 (cl-defmethod symon-monitor-update :before ((this symon-monitor-history))
   (ring-insert (oref this history) (symon-monitor-fetch this)))
@@ -324,6 +327,7 @@ This method is called when activating `symon-mode'."
 (cl-defmethod symon-monitor-display ((this symon-monitor-history))
   "Default display method for Symon monitors."
   (let* ((lst (ring-elements (oref this history)))
+         (plist (oref this display-opts))
          (sparkline (plist-get plist :sparkline))
          (upper-bound (plist-get plist :upper-bound))
          (lower-bound (plist-get plist :lower-bound)))
