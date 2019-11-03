@@ -370,21 +370,24 @@ This method is called when activating `symon-mode'."
                     (match-string 1)))))
             indices)))
 
-(defvar symon-linux--last-cpu-ticks nil)
+(defclass symon-linux-cpu (symon-monitor-history)
+  ((last-total-ticks :type integer :initform 0)
+   (last-idle-ticks :type integer :initform 0)
+   (display-opts :type list
+                 :initform '(:index "CPU:" :unit "%" :sparkline t))))
 
-(define-symon-monitor symon-linux-cpu-monitor
-  :index "CPU:" :unit "%" :sparkline t
-  :setup (setq symon-linux--last-cpu-ticks nil)
-  :fetch (cl-destructuring-bind (cpu)
-             (symon-linux--read-lines
-              "/proc/stat" (lambda (str) (mapcar 'read (split-string str nil t))) '("cpu"))
-           (let ((total (apply '+ cpu)) (idle (nth 3 cpu)))
-             (prog1 (when symon-linux--last-cpu-ticks
-                      (let ((total-diff (- total (car symon-linux--last-cpu-ticks)))
-                            (idle-diff (- idle (cdr symon-linux--last-cpu-ticks))))
-                        (unless (zerop total-diff)
-                          (/ (* (- total-diff idle-diff) 100) total-diff))))
-               (setq symon-linux--last-cpu-ticks (cons total idle))))))
+(cl-defmethod symon-monitor-fetch ((this symon-linux-cpu))
+  (cl-destructuring-bind (cpu)
+      (symon-linux--read-lines
+       "/proc/stat" (lambda (str) (mapcar 'read (split-string str nil t))) '("cpu"))
+    (with-slots (last-total-ticks last-idle-ticks) this
+      (let ((total (apply '+ cpu)) (idle (nth 3 cpu)))
+        (prog1 (let ((total-diff (- total last-total-ticks))
+                     (idle-diff (- idle last-idle-ticks)))
+                 (unless (zerop total-diff)
+                   (/ (* (- total-diff idle-diff) 100) total-diff)))
+          (setf last-total-ticks total
+                last-idle-ticks idle))))))
 
 (define-symon-monitor symon-linux-memory-monitor
   :index "MEM:" :unit "%" :sparkline t
