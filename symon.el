@@ -685,15 +685,34 @@ while(1)                                                            \
 (defvar symon--total-page-num nil)
 (defvar symon--timer-objects  nil)
 
+(defun symon--instantiate (monitor-or-symbol)
+  "Create an instance."
+  (cond
+   ;; Instance of symon-monitor class.
+   ((and (object-p monitor-or-symbol) (object-of-class-p monitor-or-symbol symon-monitor))
+    monitor-or-symbol)
+
+   ;; Symbol bound to a symon-monitor class.
+   ((and (symbolp monitor-or-symbol)
+         (class-p monitor-or-symbol)
+         (child-of-class-p monitor-or-symbol symon-monitor))
+    (make-instance monitor-or-symbol))
+
+   ;; Expression which can evaluate to one of the above.
+   ((consp monitor-or-symbol) (symon--instantiate (eval monitor-or-symbol)))))
+
+(defun symon--setup (monitors)
+  (thread-first
+      (lambda (page)
+        (remove-if-not #'identity (mapcar #'symon--instantiate page)))
+    (mapcar symon-monitors)))
+
 (defun symon--initialize ()
   (unless symon-monitors
-    (message "Warning: `symon-monitors' is empty."))
-
-  (let ((monitors-flattened (symon--flatten symon-monitors)))
-
-    (mapc #'symon-monitor-setup monitors-flattened) ; Call setup-fns
-
-    (setq symon--active-monitors monitors-flattened
+    (warn "`symon-monitors' is empty."))
+  (let ((monitors (symon--setup symon-monitors)))
+    (mapc #'symon-monitor-setup (symon--flatten monitors))
+    (setq symon--active-monitors monitors
           symon--display-active nil
           symon--total-page-num (length symon-monitors)
           symon--timer-objects
@@ -706,20 +725,20 @@ while(1)                                                            \
   (remove-hook 'kill-emacs-hook 'symon--cleanup)
   (remove-hook 'pre-command-hook 'symon--display-end)
   (mapc #'cancel-timer symon--timer-objects)
-  (mapc #'symon-monitor-cleanup symon--active-monitors))
+  (mapc #'symon-monitor-cleanup (symon--flatten symon--active-monitors)))
 
 (defun symon--display-update ()
   "update symon display"
   (unless (or cursor-in-echo-area (active-minibuffer-window))
     (let ((message-log-max nil)  ; do not insert to *Messages* buffer
           (display-string nil))
-      (thread-last
-          (cl-loop for monitor in (elt symon-monitors symon--active-page)
+      (message "%s" (substring
+          (cl-loop for monitor in (elt symon--active-monitors symon--active-page)
                    for output = (symon-monitor-display monitor)
                    unless (or (null output) (string= "" output))
+                   concat " "
                    concat output)
-        string-trim
-        (message "%s")))
+          1)))
     (setq symon--display-active t)))
 
 (defun symon-display ()
