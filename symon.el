@@ -65,11 +65,6 @@
 BEFORE enabling `symon-mode'.*"
   :group 'symon)
 
-(defcustom symon-history-size 50
-  "number of old values to keep. sparklines grow faster when set
-smaller. *set this option BEFORE enabling `symon-mode'.*"
-  :group 'symon)
-
 (defcustom symon-monitors
   (cond ((memq system-type '(gnu/linux cygwin))
          '(symon-linux-memory-monitor
@@ -216,115 +211,113 @@ static char * sparkline_xpm[] = { \"%d %d 2 1\", \"@ c %s\", \". c none\""
       `(image :type xpm :data ,(buffer-string) :ascent ,symon-sparkline-ascent
               :height ,symon-sparkline-height :width ,symon-sparkline-width))))
 
-;;   + symon monitor generator
+;;   + symon monitor classes & helpers
 
-;; a symon monitor is a vector of 3 functions: [SETUP-FN CLEANUP-FN
-;; DISPLAY-FN]. SETUP-FN is called on activation of `symon-mode', and
-;; expected to setup Emacs to fetch status values in a specific
-;; interval. CLEANUP-FN is called on deactivation and expected to tell
-;; Emacs to stop fetching. DISPLAY-FN is called just before displaying
-;; monitor, and must return display string for the monitor.
+(defun symon--make-history-ring (size)
+  "like `(make-ring size)' but filled with `nil'."
+  (cons 0 (cons size (make-vector size nil))))
 
-(defun symon--make-history-ring ()
-  "like `(make-ring symon-history-size)' but filled with `nil'."
-  (cons 0 (cons symon-history-size (make-vector symon-history-size nil))))
+(defclass symon-monitor ()
+  ((interval :type integer
+             :initform 4
+             :initarg :interval
+             :documentation "Fetch interval in seconds.")
+   (display-opts :type list
+                 :initform nil
+                 :initarg :display-opts
+                 :documentation "User-specified display options for this monitor.")
+   (default-display-opts :type list
+     :initform nil
+     :type list
+     :documentation "Default display options for this monitor.")
 
-(defmacro define-symon-monitor (name &rest plist)
-  "define a new symon monitor NAME. following keywords are
-supoprted in PLIST:
+   ;; Internal slots
 
-:setup (default: nil)
+   (timer
+    :documentation "Fires `symon-monitor-fetch' for this monitor.")
+   (value
+    :accessor symon-monitor-value
+    :documentation "Most recent value"))
 
-    an expression evaluated when activating symon-mode, and
-    expected to do some preparation.
+  :abstract t
+  :documentation "Base (default) Symon monitor class.")
 
-:cleanup (default: nil)
+(cl-defmethod symon-monitor-update ((this symon-monitor))
+  "Update THIS, storing the latest value."
+  (oset this value (symon-monitor-fetch this)))
 
-    an expression evaluated when deactivating symon-mode, and
-    expected to do some cleanup.
+(cl-defmethod symon-monitor-setup ((this symon-monitor))
+  "Setup this monitor.
 
-:fetch (default: nil)
+This method is called when activating `symon-mode'."
 
-    an expression that evaluates to the latest status value. the
-    value must be a number (otherwise `N/A' is displayed as the
-    value).
+  ;; Merge display opts
+  (let ((opts (copy-list (oref this default-display-opts)))
+        (user-opts (copy-list (oref this display-opts))))
+    (while user-opts
+      (plist-put opts (pop user-opts) (pop user-opts)))
+    (oset this display-opts opts))
 
-:interval (default: symon-refresh-rate)
+  (oset this timer
+        (run-with-timer 0 (oref this interval)
+                        (apply-partially #'symon-monitor-update this))))
 
-    fetch interval in seconds.
+(cl-defmethod symon-monitor-cleanup ((this symon-monitor))
+  "Cleanup the monitor.
 
-:index (default: \"\")
+   This method is called when deactivating `symon-mode'."
+  (cancel-timer (oref this timer))
+  (oset this timer nil))
 
-    string prepended to the status value (\"MEM:\" for memory
-    monitor, for example).
+(cl-defmethod symon-monitor-fetch ((this symon-monitor))
+  "Fetch the current monitor value.")
 
-:unit (default: \"\")
+(cl-defmethod symon-monitor-display ((this symon-monitor))
+  "Default display method for Symon monitors."
+  (let* ((val (car (ring-elements (oref this history))))
+         (plist (oref this display-opts))
+         (index (plist-get plist :index))
+         (unit (plist-get plist :unit)))
+    (concat index
+            (if (not (numberp val)) "N/A"
+              (format "%d%s" val unit)))))
 
-    string appended to the status value (\"%\" for memory
-    monitor, for example).
+(defclass symon-monitor-history (symon-monitor)
+  ((history-size :type integer :custom integer
+                 :initform 50
+                 :initarg :history-size)
+   (history
+    :accessor symon-monitor-history
+    :documentation "Ring of historical monitor values"))
 
-:annotation (default: nil)
+  :abstract t
+  :documentation "Monitor class which stores a history of values.")
 
-    an expression that evaluates to the annotation string for the
-    metrics (\"xxxKB Swapped\" for memory monitor, for
-    example). if this expression returns a non-nil value, it is
-    surrounded with parentheses and appended to the status value.
+(cl-defmethod symon-monitor-setup ((this symon-monitor-history))
+  (oset this history (symon--make-history-ring (oref this history-size)))
+  (cl-call-next-method))
 
-:display (default: nil)
+(cl-defmethod symon-monitor-value ((this symon-monitor-history))
+  (car (oref this symon-monitor-history)))
 
-    an expression evaluated before updating symon display. when
-    this expression evaluates to a non-nil value, it will be
-    displayed instead of standard symon display format.
+(cl-defmethod symon-monitor-update :before ((this symon-monitor-history))
+  (ring-insert (oref this history) (symon-monitor-fetch this)))
 
-:sparkline (default: nil)
-
-    when non-nil, sparklines are rendered.
-
-:lower-bound (default: 100.0)
-
-    upper bound of sparkline.
-
-:upper-bound (default: 0.0)
-
-    lower bound of sparkline."
-  (let* ((cell (make-vector 2 nil))
+(cl-defmethod symon-monitor-display ((this symon-monitor-history))
+  "Default display method for Symon monitors."
+  (let* ((lst (ring-elements (oref this history)))
          (sparkline (plist-get plist :sparkline))
-         (interval (or (plist-get plist :interval) 'symon-refresh-rate))
-         (display (plist-get plist :display))
-         (update-fn
-          `(lambda ()
-             (ring-insert (aref ,cell 0) ,(plist-get plist :fetch))))
-         (setup-fn
-          `(lambda ()
-             (aset ,cell 0 (symon--make-history-ring))
-             (aset ,cell 1 (run-with-timer 0 ,interval ,update-fn))
-             ,(plist-get plist :setup)
-             (funcall ,update-fn)))
-         (cleanup-fn
-          `(lambda ()
-             (cancel-timer (aref ,cell 1))
-             ,(plist-get plist :cleanup)))
-         (display-fn
-          (if display `(lambda () (concat ,display " "))
-            `(lambda ()
-               (let* ((lst (ring-elements (aref ,cell 0)))
-                      (val (car lst)))
-                 (concat ,(plist-get plist :index)
-                         (if (not (numberp val)) "N/A "
-                           (concat (format "%d%s " val ,(or (plist-get plist :unit) ""))
-                                   (let ((annot ,(plist-get plist :annotation)))
-                                     (when annot (concat "(" annot ") ")))))
-                         ,(when sparkline
-                            `(when (window-system)
-                               (let ((sparkline (symon--make-sparkline
-                                                 lst
-                                                 ,(plist-get plist :lower-bound)
-                                                 ,(plist-get plist :upper-bound))))
-                                 (when symon-sparkline-use-xpm
-                                   (setq sparkline
-                                         (symon--convert-sparkline-to-xpm sparkline)))
-                                 (concat (propertize " " 'display sparkline) " "))))))))))
-    `(setq ',name (vector ,setup-fn ,cleanup-fn ,display-fn))))
+         (upper-bound (plist-get plist :upper-bound))
+         (lower-bound (plist-get plist :lower-bound)))
+
+    (concat (cl-call-next-method)
+            (when (and sparkline (window-system))
+              (let ((sparkline (symon--make-sparkline
+                                lst lower-bound upper-bound)))
+                (when symon-sparkline-use-xpm
+                  (setq sparkline
+                        (symon--convert-sparkline-to-xpm sparkline)))
+                (propertize " " 'display sparkline))))))
 
 ;;   + process management
 
@@ -661,8 +654,7 @@ while(1)                                                            \
 
 ;; + symon core
 
-(defvar symon--cleanup-fns    nil)      ; List[Fn]
-(defvar symon--display-fns    nil)      ; List[List[Fn]]
+(defvar symon--active-monitors nil)
 (defvar symon--display-active nil)
 (defvar symon--active-page    nil)
 (defvar symon--total-page-num nil)
@@ -671,14 +663,12 @@ while(1)                                                            \
 (defun symon--initialize ()
   (unless symon-monitors
     (message "Warning: `symon-monitors' is empty."))
-  (let* ((symon-monitors                ; for backward-compatibility
-          (if (symbolp (car symon-monitors))
-              (list symon-monitors)
-            symon-monitors))
-         (monitors-flattened (symon--flatten symon-monitors)))
-    (mapc (lambda (m) (funcall (aref m 0))) monitors-flattened) ; setup-fns
-    (setq symon--cleanup-fns    (mapcar (lambda (m) (aref m 1)) monitors-flattened)
-          symon--display-fns    (mapcar (lambda (l) (mapcar (lambda (m) (aref m 2)) l)) monitors)
+
+  (let ((monitors-flattened (symon--flatten symon-monitors)))
+
+    (mapc #'symon-monitor-setup monitors-flattened) ; Call setup-fns
+
+    (setq symon--active-monitors monitors-flattened
           symon--display-active nil
           symon--total-page-num (length symon-monitors)
           symon--timer-objects
@@ -690,20 +680,21 @@ while(1)                                                            \
 (defun symon--cleanup ()
   (remove-hook 'kill-emacs-hook 'symon--cleanup)
   (remove-hook 'pre-command-hook 'symon--display-end)
-  (mapc 'cancel-timer symon--timer-objects)
-  (mapc 'funcall symon--cleanup-fns))
+  (mapc #'cancel-timer symon--timer-objects)
+  (mapc #'symon-monitor-cleanup symon--active-monitors))
 
 (defun symon--display-update ()
   "update symon display"
   (unless (or cursor-in-echo-area (active-minibuffer-window))
     (let ((message-log-max nil)  ; do not insert to *Messages* buffer
-          (display-string nil)
-          (page 0))
-      (dolist (lst symon--display-fns)
-        (if (= page symon--active-page)
-            (message "%s" (apply 'concat (mapcar 'funcall lst)))
-          (mapc 'funcall lst))
-        (setq page (1+ page))))
+          (display-string nil))
+      (thread-last
+          (cl-loop for monitor in (elt symon-monitors symon--active-page)
+                   for output = (symon-monitor-display monitor)
+                   unless (or (null output) (string= "" output))
+                   concat output)
+        string-trim
+        (message "%s")))
     (setq symon--display-active t)))
 
 (defun symon-display ()
