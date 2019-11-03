@@ -1,4 +1,4 @@
-;;; symon.el --- tiny graphical system monitor
+;;; symon.el --- tiny graphical system monitor     -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015 zk_phi
 
