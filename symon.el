@@ -155,28 +155,30 @@ monitor from:
   "Update THIS, storing the latest value."
   (oset this value (symon-monitor-fetch this)))
 
+(defun symon--plist-merge (defaults user)
+  (let ((opts (copy-list defaults))
+        (user (copy-list user)))
+    (while user
+      (setq opts (plist-put opts (pop user) (pop user))))
+    opts))
+
 (cl-defmethod symon-monitor-setup ((this symon-monitor))
   "Setup this monitor.
 
 This method is called when activating `symon-mode'."
 
   ;; Merge display opts
-  (let ((opts (copy-list (oref this default-display-opts)))
-        (user-opts (copy-list (oref this display-opts))))
-    (while user-opts
-      (plist-put opts (pop user-opts) (pop user-opts)))
-    (oset this display-opts opts))
-
-  (oset this timer
-        (run-with-timer 0 (oref this interval)
-                        (apply-partially #'symon-monitor-update this))))
+  (with-slots (display-opts default-display-opts) this
+    (setq display-opts (symon--plist-merge default-display-opts
+                                           display-opts))))
 
 (cl-defmethod symon-monitor-cleanup ((this symon-monitor))
   "Cleanup the monitor.
 
    This method is called when deactivating `symon-mode'."
-  (cancel-timer (oref this timer))
-  (oset this timer nil))
+  (when (slot-boundp this 'timer)
+    (cancel-timer (oref this timer))
+    (oset this timer nil)))
 
 (cl-defmethod symon-monitor-fetch ((this symon-monitor))
   "Fetch the current monitor value.")
