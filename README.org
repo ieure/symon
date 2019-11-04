@@ -1,132 +1,284 @@
-* symon.el
+* Xymon
+  :PROPERTIES:
+  :ID:       448c271a-c9b1-4ac2-9c80-4737529d9ea7
+  :END:
 
-コンパクトでおしゃれなシステムモニター
-
-tiny graphical system monitor
+  Xymon (pronounced "zymon") is a tiny system monitor which displays
+  system information in the echo area when Emacs is idle.  Xymon is a
+  fork of [[https://github.com/zk-phi/symon][Symon]], with changes to be more generic and extensible.
 
 ** Screenshot
+   :PROPERTIES:
+   :ID:       7aa501aa-c646-457a-a111-969c54205e1f
+   :END:
 
-[[file:img/screenshot.png]]
+   [[file:img/screenshot.png]]
 
-** NOTE: RECENT INCOMPATIBLE CHANGES
 
-- sparkline types are renamed:
-  - =symon-sparkline-plain= -> =plain=
-  - =symon-sparkline-bounded= -> =bounded=
-  - =symon-sparkline-boxed= -> =boxed=
-  - =symon-sparkline-gridded= -> =gridded=
+** Installation
+   :PROPERTIES:
+   :ID:       1505f520-214d-48cc-ab18-a804a41e81b5
+   :END:
+
+   Recommended:
+
+   #+BEGIN_SRC emacs-lisp :eval never
+     (use-package xymon
+       :straight (:host github
+                        :repo "ieure/xymon"))
+   #+END_SRC
 
 ** Usage
+   :PROPERTIES:
+   :ID:       6517036f-a482-4823-9954-b0446914d038
+   :END:
 
-Load =symon=
+   Load =symon=
 
-: (require 'symon)
+   : (require 'symon)
 
-and turn on =symon-mode=.
+   and turn on =symon-mode=.
 
-: (symon-mode)
+   : (symon-mode)
 
-then a tiny system monitor is displayed in minibuffer, during idle.
+   then a tiny system monitor is displayed in minibuffer, during idle.
 
 ** Customization
+   :PROPERTIES:
+   :ID:       71529d50-a063-43d6-b5a2-bc9f9bbc7e6a
+   :END:
 
-- =symon-monitors= :: List of symon monitors used to fetch system
-     statuses. You can set this variable to specify what metrics to
-     display and what to not. List of available monitors is provided
-     below.
+   - =symon-monitors= :: List of symon monitors used to fetch system
+        statuses. You can set this variable to specify what metrics to
+        display and what to not. List of available monitors is provided
+        below.
 
-- =symon-refresh-rate= :: Refresh rate of symon display.
+   - =symon-refresh-rate= :: Refresh rate of symon display.
 
-- =symon-delay= :: Delay in seconds until symon is displayed.
+   - =symon-delay= :: Delay in seconds until symon is displayed.
 
-- =symon-history-size= :: Number of old values to keep. Sparklines
-     grow faster when set smaller.
+   - =symon-history-size= :: Number of old values to keep. Sparklines
+        grow faster when set smaller.
 
-You need to restart =symon-mode= in order to reflect changes of these
-4 options above.
+   You need to restart =symon-mode= in order to reflect changes of these
+   4 options above.
 
-- =symon-sparkline-height= :: Height of sparklines.
+   - =symon-sparkline-height= :: Height of sparklines.
 
-- =symon-sparkline-width= :: Width of sparklines.
+   - =symon-sparkline-width= :: Width of sparklines.
 
-- =symon-sparkline-thickness= :: Line width of sparklines.
+   - =symon-sparkline-thickness= :: Line width of sparklines.
 
-- =symon-sparkline-ascent= :: Adjust vertical position of sparklines.
+   - =symon-sparkline-ascent= :: Adjust vertical position of sparklines.
 
-- =symon-sparkline-type= :: Type of sparklines. following
-     preconfigured types are available:
+   - =symon-sparkline-type= :: Type of sparklines. following
+        preconfigured types are available:
 
-  - =plain=
+        - =plain=
 
-    [[file:img/plain.png]]
+          [[file:img/plain.png]]
 
-  - =bounded=
+        - =bounded=
 
-    [[file:img/bounded.png]]
+          [[file:img/bounded.png]]
 
-  - =boxed=
+        - =boxed=
 
-    [[file:img/boxed.png]]
+          [[file:img/boxed.png]]
 
-  - =gridded=
+        - =gridded=
 
-    [[file:img/gridded.png]]
+          [[file:img/gridded.png]]
 
 ** Preconfigured Monitors
+   :PROPERTIES:
+   :ID:       64dcaa69-ec9a-46f9-989c-c8c10b127039
+   :END:
 
-- GNU/Linux
+   - GNU/Linux
 
-  - =symon-linux-memory-monitor= :: memory usage (%) and swapped
-       memory (MB) via =/proc/meminfo=
+     - =symon-linux-memory-monitor= :: memory usage (%) and swapped
+          memory (MB) via =/proc/meminfo=
 
-  - =symon-linux-cpu-monitor= :: CPU load (%) via =/proc/stat=
+     - =symon-linux-cpu-monitor= :: CPU load (%) via =/proc/stat=
 
-  - =symon-linux-battery-monitor= :: remaining battery (%) via
-       built-in library =battery.el=
+     - =symon-linux-battery-monitor= :: remaining battery (%) via
+          built-in library =battery.el=
 
-  - =symon-linux-network-rx-monitor= :: network RX (KB/s) via
-       =/proc/net/dev=
+     - =symon-linux-network-rx-monitor= :: network RX (KB/s) via
+          =/proc/net/dev=
 
-  - =symon-linux-network-tx-monitor= :: network TX (KB/s) via
-       =/proc/net/dev=
+     - =symon-linux-network-tx-monitor= :: network TX (KB/s) via
+          =/proc/net/dev=
 
-- Darwin (Mac OS X)
+   - Darwin (Mac OS X)
 
-  - =symon-darwin-memory-monitor= :: memory usage (%) and swapped
-       memory (MB) via =sysctl=
+     - =symon-darwin-memory-monitor= :: memory usage (%) and swapped
+          memory (MB) via =sysctl=
 
-  - =symon-darwin-cpu-monitor= :: CPU load (%) via =hostinfo=
+     - =symon-darwin-cpu-monitor= :: CPU load (%) via =hostinfo=
 
-  - =symon-darwin-battery-monitor= :: remaining battery (%) via
-       built-in library =battery.el=
+     - =symon-darwin-battery-monitor= :: remaining battery (%) via
+          built-in library =battery.el=
 
-  - =symon-darwin-network-rx-monitor= :: network RX (KB/s) via
-       =netstat=
+     - =symon-darwin-network-rx-monitor= :: network RX (KB/s) via
+          =netstat=
 
-  - =symon-darwin-network-tx-monitor= :: network TX (KB/s) via
-       =netstat=
+     - =symon-darwin-network-tx-monitor= :: network TX (KB/s) via
+          =netstat=
 
-- Windows
+   - Windows
 
-  - =symon-windows-memory-monitor= :: memory usage (%) via =WMI=
+     - =symon-windows-memory-monitor= :: memory usage (%) via =WMI=
 
-  - =symon-windows-page-file-monitor= :: page file usage (MB) via =WMI=
+     - =symon-windows-page-file-monitor= :: page file usage (MB) via =WMI=
 
-  - =symon-windows-cpu-monitor= :: CPU load (%) via =WMI=
+     - =symon-windows-cpu-monitor= :: CPU load (%) via =WMI=
 
-  - =symon-windows-battery-monitor= :: remaining battery (%) via =WMI=
+     - =symon-windows-battery-monitor= :: remaining battery (%) via =WMI=
 
-  - =symon-windows-network-rx-monitor= :: network RX (KB/s) via =WMI=
+     - =symon-windows-network-rx-monitor= :: network RX (KB/s) via =WMI=
 
-  - =symon-windows-network-tx-monitor= :: network TX (KB/s) via =WMI=
+     - =symon-windows-network-tx-monitor= :: network TX (KB/s) via =WMI=
 
-- misc
+   - misc
 
-  - =symon-current-time-monitor= :: current Time (hh::mm) via built-in
-       function =format-time-string=
+     - =symon-current-time-monitor= :: current Time (hh::mm) via built-in
+          function =format-time-string=
+
+
+** Creating new monitors
+   :PROPERTIES:
+   :ID:       cd1b28e3-3d40-47f6-82e9-1a6eb1f5b658
+   :END:
+
+   Xymon uses EIEIO classes to implement monitors, and provides two
+   base classes to build on:
+
+   - =xymon-monitor=.  This is the most basic class, suitable for
+     simple non-graphical monitors, such as a time display.
+   - =xymon-monitor-history=.  This class keeps a history of monitor
+     values so they can be graphed.  Any monitor with a sparkline uses
+     this class.
+
+*** Defining your monitor class
+    :PROPERTIES:
+    :ID:       674fab64-0c0c-4ff8-8a89-47c4b2afcfa6
+    :END:
+
+    The simplest monitor is defined thus:
+
+    #+BEGIN_SRC emacs-lisp :eval never
+      (defclass xymon-hello (xymon-monitor))
+    #+END_SRC
+
+    Most customization is handled with generic methods that operate on
+    this class.
+
+    If your monitor needs to hold extra state or customization, that can
+    be stored in slots.  An example of where this might be useful is
+    a monitor for system fan speed, where you specify the specific fan
+    to when the monitor object is created.
+
+    #+BEGIN_SRC emacs-lisp :eval never
+      (defclass xymon-hello (xymon-monitor)
+        ((who :initform "world"
+              :initarg :who)))
+    #+END_SRC
+
+
+    Note that the common case of the current (and historical) monitor
+    values are already handled in the base classes, so new slots for
+    those aren’t necessary.
+
+*** Fetching new values
+    :PROPERTIES:
+    :ID:       b96fa238-ba27-4c6b-9087-8584221ef318
+    :END:
+
+    The =symon-monitor-fetch= generic method is responsible for
+    getting the monitor’s current value.
+
+    Fetching and display are separate operations which run
+    asynchronously.  The =xymon-monitor= class handles polling this
+    function periodically and storing its value(s) for later display.
+
+    #+BEGIN_SRC emacs-lisp :eval never
+      (cl-defmethod xymon-monitor-fetch ((this xymon-hello))
+        (oref this who))
+    #+END_SRC
+
+
+*** Displaying the value
+    :PROPERTIES:
+    :ID:       452faf00-b00b-4f11-8788-ea79e8b021ff
+    :END:
+
+    The =symon-monitor-display= generic function turns the raw
+    (fetched) value into something a human can understand.  This might
+    include adding a face or sparklines.  If this function evaluates
+    to =nil= or =""= (the empty string), the monitor won’t be
+    displayed at all.  This is useful for conditional display of
+    monitors, such as a media player monitor that hides when nothing
+    is playing, a swap monitor that hides when no swap is used, etc.
+
+    #+BEGIN_SRC emacs-lisp :eval never
+      (cl-defmethod symon-monitor-display ((this xymon-custom-monitor))
+        (thread-first
+            (format "Hello, %s" (symon-monitor-value this))
+          (propertize 'face 'compilation-info)))
+    #+END_SRC
+
+
+   The default implementation of =xymon-monitor-display= is simliar
+   to the behavior of Symon, and suitable for many monitors -- you may
+   not need your own method at all.
+
+**** Display options
+     :PROPERTIES:
+     :ID:       4c2c35bf-9d16-4401-a226-ce8419c85c0e
+     :END:
+
+     Behavior of the display function can be customized per instance,
+     by setting the =display-opts= slot when the object is created.
+     The =display-opts= slot is /only/ for user-specified options --
+     when creating a monitor,
+
+
+     The following options are supported:
+
+     - =:index=.  A string, which is prepended to the current monitor value.
+     - =:unit=.  A string; represents the unit the monitor is
+       measuring.  Appended to the current monitor value.
+
+     For monitors based on =xymon-monitor-history=, additional
+     graph-related options are supported:
+
+     - =:sparkline=.  A boolean.  When non-=nil=, appends a small
+       graph to the monitor.
+     - =:lower-bound=.  An integer.  The value representing the bottom
+       line of the graph.
+     - =:upper-bound=.  An integer.  The value representing the top
+       line of the graph.
+
+*** Constructing the monitor
+    :PROPERTIES:
+    :ID:       f44e3392-4292-4fce-ac87-1ba0d44d82d9
+    :END:
+
+    Defining the monitor controls /how/ it works; an instance
+    determines /what/ it monitors.
+
+    #+BEGIN_SRC emacs-lisp :eval never
+      (setq my/hello-monitor (xymon-hello :who user-login-name))
+    #+END_SRC
+
 
 ** Contributors
+   :PROPERTIES:
+   :ID:       839e2264-f266-4a62-96b4-51fa63cb9f2e
+   :END:
 
-- [[https://github.com/pierre-lecocq][Pierre Lecocq]] added darwin support.
+   - [[https://github.com/pierre-lecocq][Pierre Lecocq]] added darwin support.
 
-Thanks!
+   Thanks!
