@@ -42,7 +42,6 @@
 
 ;;; Code:
 
-(require 'battery)
 (require 'ring)
 (require 'symon-sparkline)
 
@@ -332,14 +331,6 @@ The following display-opts are supported:
              (if (equal 'megabytes (plist-get (oref this display-opts) :style))
                  "mb" "%"))
   (cl-call-next-method))
-
-(defclass symon-battery (symon-monitor-history)
-  ((default-display-opts
-     :initform '(:index "BAT:" :unit "%" :sparkline t))))
-
-(cl-defmethod symon-monitor-fetch ((this symon-battery))
-  (when battery-status-function
-    (read (cdr (assoc ?p (funcall battery-status-function))))))
 
 ;; FIXME this is broken
 (defclass symon-linux-network-rx (symon-monitor-history)
