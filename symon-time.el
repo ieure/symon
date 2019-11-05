@@ -1,3 +1,29 @@
+;;; symon-time.el --- Clock for Symon                -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2019  Ian Eure
+
+;; Author: Ian Eure <ian@retrospec.tv>
+;; Keywords: calendar
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Display a clock in Symon.
+
+;;; Code:
+
 (require 'symon-monitor)
 
 (defgroup symon-time nil
@@ -49,8 +75,14 @@ time."
                  format)
     (format-time-string time)))
 
+;;;###autoload
 (defclass symon-time (symon-monitor)
-  ((default-display-opts '(:format "%H:%M")))
+  ((default-display-opts '(:format "%H:%M")
+     :documentation "Default options for time display.
+
+:format is passed to `symon-time--format' to determine what
+information to display."))
+
   :documentation "Display the time in Symon.")
 
 (cl-defmethod symon-monitor-fetch ((this symon-time))
@@ -91,3 +123,4 @@ time."
   (string= "🕜" (symon-time--symbol 12 30)))
 
 (provide 'symon-time)
+;;; symon-time.el ends here
