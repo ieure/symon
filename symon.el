@@ -119,9 +119,6 @@ monitor from:
       (apply 'nconc (mapcar 'symon--flatten lst))
     (list lst)))
 
-;;   + symon monitor classes & helpers
-
-
 ;;   + process management
 
 (defvar symon--process-buffer-name " *symon-process*")
@@ -160,28 +157,6 @@ monitor from:
 
 ;; + predefined monitors
 ;;   + linux monitors
-
-(defun symon-linux--read-lines (file reader indices)
-  (with-temp-buffer
-    (insert-file-contents file)
-    (goto-char 1)
-    (mapcar (lambda (index)
-              (save-excursion
-                (when (search-forward-regexp (concat "^" index "\\(.*\\)$") nil t)
-                  (if reader
-                      (funcall reader (match-string 1))
-                    (match-string 1)))))
-            indices)))
-
-(defun symon--slurp (file)
-  "Return the contents of FILE as a string."
-  (with-temp-buffer
-    (insert-file-contents file)
-    (buffer-substring (point-min) (line-end-position))))
-
-
-
-
 
 ;; FIXME this is broken
 (defclass symon-linux-network-rx (symon-monitor-history)

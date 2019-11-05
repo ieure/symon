@@ -4,6 +4,24 @@
   "like `(make-ring size)' but filled with `nil'."
   (cons 0 (cons size (make-vector size nil))))
 
+(defun symon-monitor--linux-read-lines (file reader indices)
+  (with-temp-buffer
+    (insert-file-contents file)
+    (goto-char 1)
+    (mapcar (lambda (index)
+              (save-excursion
+                (when (search-forward-regexp (concat "^" index "\\(.*\\)$") nil t)
+                  (if reader
+                      (funcall reader (match-string 1))
+                    (match-string 1)))))
+            indices)))
+
+(defun symon-monitor--slurp (file)
+  "Return the contents of FILE as a string."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (buffer-substring (point-min) (line-end-position))))
+
 (defclass symon-monitor ()
   ((interval :type integer
              :initform 4
