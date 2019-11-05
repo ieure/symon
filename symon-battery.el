@@ -5,16 +5,6 @@
   "Customization for Symon battery monitor."
   :group 'symon)
 
-(defcustom symon-battery-charging-indicator "^"
-  "Indicator used when the system is plugged in and/or charging."
-  :type 'string
-  :group 'symon-battery)
-
-(defcustom symon-battery-discharging-indicator "v"
-  "Indicator used when the system is discharging the battery"
-  :type 'string
-  :group 'symon-battery)
-
 (defface symon-battery-low-face
   '((t :background "Red1"
        :foreground "white"
