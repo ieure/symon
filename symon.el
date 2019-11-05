@@ -183,34 +183,6 @@ monitor from:
 
 
 
-(defclass symon-linux-swap (symon-monitor)
-  ((default-display-opts :initform '(:index "SWAP:" :style 'megabytes :sparkline nil)))
-  :documentation "Monitor for Linux system swap.
-
-The following display-opts are supported:
-
-:style - May be 'MEGABYTES (mb swapped) or 'PERCENT (% swap used).
-:hide  - When non-NIL, only show monitor if swap is being used.")
-
-(cl-defmethod symon-monitor-fetch ((this symon-linux-swap))
-  (cl-destructuring-bind (swaptotal swapfree)
-      (symon-linux--read-lines
-       "/proc/meminfo" 'read '("SwapTotal:" "SwapFree:"))
-    (let ((swapped-bytes (- swaptotal swapfree)))
-      (pcase (plist-get (oref this display-opts) :style)
-        ('megabytes (/ swapped-bytes 1000))
-        (_ (round (* 100 (/ swapped-bytes (float swaptotal)))))))))
-
-(cl-defmethod symon-monitor-display ((this symon-linux-swap))
-  (when (>= (symon-monitor-value this) 0)
-    (cl-call-next-method)))
-
-(cl-defmethod symon-monitor-setup ((this symon-linux-swap))
-  (plist-put (oref this display-opts) :unit
-             (if (equal 'megabytes (plist-get (oref this display-opts) :style))
-                 "mb" "%"))
-  (cl-call-next-method))
-
 ;; FIXME this is broken
 (defclass symon-linux-network-rx (symon-monitor-history)
   ((default-display-opts
