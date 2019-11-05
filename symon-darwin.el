@@ -29,11 +29,6 @@ done" symon-refresh-rate)))
 (cl-defmethod symon-monitor-cleanup ((this symon-monitor-darwin))
   (symon-darwin--maybe-kill-process))
 
-(defclass symon-darwin-memory (symon-monitor-darwin symon-monitor-history))
-
-(cl-defmethod symon-monitor-fetch ((this symon-monitor-darwin))
-  (symon--read-value-from-process-buffer "mem"))
-
 (defclass symon-darwin-network-rx (symon-monitor-darwin symon-linux-network-rx))
 
 (cl-defmethod symon-monitor-fetch ((this symon-darwin-network-rx))

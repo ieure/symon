@@ -292,17 +292,7 @@ This method is called when activating `symon-mode'."
 
 
 
-(defclass symon-linux-memory (symon-monitor-history)
-  ((default-display-opts :initform '(:index "MEM:" :unit "%" :sparkline t))))
 
-(cl-defmethod symon-monitor-fetch ((this symon-linux-memory))
-  (cl-destructuring-bind (memtotal memavailable memfree buffers cached)
-      (symon-linux--read-lines
-       "/proc/meminfo" (lambda (str) (and str (read str)))
-       '("MemTotal:" "MemAvailable:" "MemFree:" "Buffers:" "Cached:"))
-    (if memavailable
-        (/ (* (- memtotal memavailable) 100) memtotal)
-      (/ (* (- memtotal (+ memfree buffers cached)) 100) memtotal))))
 
 (defclass symon-linux-swap (symon-monitor)
   ((default-display-opts :initform '(:index "SWAP:" :style 'megabytes :sparkline nil)))
