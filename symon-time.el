@@ -70,7 +70,7 @@ FORMAT is a superset of `format-time-string':
 time."
   (thread-first
       (s-replace "%f"
-                 (pcase (decode-time)
+                 (pcase (decode-time time)
                    (`(,_ ,mm ,hh . ,_) (symon-time--symbol hh mm)))
                  format)
     (format-time-string time)))
@@ -92,7 +92,7 @@ information to display."))
 (cl-defmethod symon-monitor-display ((this symon-time))
   "Display the current time according to the configured format."
   (thread-first
-      (symon-time--format ,format)
+      (symon-time--format (symon-monitor-value this) (plist-get (oref this display-opts) :format))
     (propertize 'face 'symon-time-face)))
 
 (ert-deftest symon-time--symbol-test ()

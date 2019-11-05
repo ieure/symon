@@ -107,7 +107,11 @@ This method is called when activating `symon-mode'."
   (with-slots (display-opts default-display-opts) this
     (setq display-opts (symon-monitor--plist-merge
                         default-display-opts
-                        display-opts))))
+                        display-opts)))
+
+  (oset this timer
+        (run-with-timer 0 (oref this interval)
+                        (apply-partially #'symon-monitor-update this))))
 
 (cl-defmethod symon-monitor-cleanup ((this symon-monitor))
   "Cleanup the monitor.
@@ -150,7 +154,7 @@ This method is called when activating `symon-mode'."
   (oref this history))
 
 (cl-defmethod symon-monitor-value ((this symon-monitor-history))
-  (car (symon-monitor-history this)))
+  (oref this value))
 
 (cl-defmethod symon-monitor-update :before ((this symon-monitor-history))
   (ring-insert (oref this history) (symon-monitor-fetch this)))
