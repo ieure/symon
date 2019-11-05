@@ -1,5 +1,5 @@
 
-(require 'symon)
+(require 'symon-monitor)
 (require 'symon-cpu)
 
  ;; Linux

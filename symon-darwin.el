@@ -1,3 +1,5 @@
+(require 'symon-monitor)
+
 (defun symon-darwin--maybe-start-process ()
   (symon--maybe-start-process (format "
 while true; do

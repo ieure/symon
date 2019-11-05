@@ -1,4 +1,4 @@
-(require 'symon)
+(require 'symon-monitor)
 (require 'symon-windows)
 (require 'symon-darwin)
 

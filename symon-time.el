@@ -1,3 +1,5 @@
+(require 'symon-monitor)
+
 (defgroup symon-time nil
   "Display the current time in Symon."
   :group 'symon)
