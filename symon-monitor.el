@@ -1,5 +1,7 @@
 (require 'symon-sparkline)
 
+ ;; I/O helpers
+
 (defun symon-monitor--make-history-ring (size)
   "like `(make-ring size)' but filled with `nil'."
   (cons 0 (cons size (make-vector size nil))))
@@ -21,6 +23,44 @@
   (with-temp-buffer
     (insert-file-contents file)
     (buffer-substring (point-min) (line-end-position))))
+
+ ;; Process management
+
+(defvar symon--process-buffer-name " *symon-process*")
+(defvar symon--process-reference-count 0)
+
+(defun symon--read-value-from-process-buffer (index)
+  "Read a value from a specific buffer"
+  (when (get-buffer symon--process-buffer-name)
+    (with-current-buffer symon--process-buffer-name
+      (when (save-excursion
+              (search-backward-regexp (concat index ":\\([0-9]+\\)\\>") nil t))
+        (read (match-string 1))))))
+
+(defun symon--maybe-start-process (cmd)
+  (setq symon--process-reference-count
+        (1+ symon--process-reference-count))
+  (unless (get-buffer symon--process-buffer-name)
+    (let ((proc (start-process-shell-command
+                 "symon-process" symon--process-buffer-name cmd))
+          (filter (lambda (proc str)
+                    (when (get-buffer symon--process-buffer-name)
+                      (with-current-buffer symon--process-buffer-name
+                        (when (and (string-match "-" str) (search-backward "----" nil t))
+                          (delete-region 1 (point)))
+                        (goto-char (1+ (buffer-size)))
+                        (insert str))))))
+      (set-process-query-on-exit-flag proc nil)
+      (set-process-filter proc filter))))
+
+(defun symon--maybe-kill-process ()
+  (setq symon--process-reference-count
+        (1- symon--process-reference-count))
+  (when (and (zerop symon--process-reference-count)
+             (get-buffer symon--process-buffer-name))
+    (kill-buffer symon--process-buffer-name)))
+
+ ;; Class definitions
 
 (defclass symon-monitor ()
   ((interval :type integer
