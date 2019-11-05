@@ -1,3 +1,29 @@
+;;; symon-battery.el --- Battery monitor for symon   -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2019  Ian Eure
+
+;; Author: Ian Eure <ian@retrospec.tv>
+;; Keywords: hardware
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Battery monitor for Symon, using built-in battery.el.
+
+;;; Code:
+
 (require 'symon)
 (require 'battery)
 
@@ -22,7 +48,8 @@ and 59 minutes left before depletion."
 
 (defface symon-battery-full-face
   '((t :foreground "ForestGreen"))
-  "Face for when the battery is discharging, and holds more than an hour's charge."
+  "Face for when the battery is discharging, and holds more than
+an hour's charge."
   :group 'symon-battery)
 
 (defface symon-battery-charging-face
@@ -31,7 +58,17 @@ and 59 minutes left before depletion."
   :group 'symon-battery)
 
 (defun symon-battery--face (charging time-left)
-  "Return the face to use for the battery monitor."
+  "Return monitor face based on CHARGING and TIME-LEFT.
+
+If the battery is being charged, returns
+`symon-battery-charging-face'
+
+If the battery is discharging, and there's between 59-30 minutes
+estimated time to depletion, returns `symon-battery-medium-face'.
+
+If the battery is discharging, and there's between 0-29 minutes
+estimated time to depletion, returns `symon-battery-low-face'."
+
   (if charging 'symon-battery-charging-face
     (cl-destructuring-bind (hh mm) (mapcar #'read (split-string time-left ":"))
       (cond
@@ -39,11 +76,13 @@ and 59 minutes left before depletion."
        ((= hh 0) 'symon-battery-low-face)
        (t 'symon-battery-full-face)))))
 
+;;;###autoload
 (defclass symon-battery (symon-monitor)
   ((interval :initform 10)
    (default-display-opts
      :initform '(:charging-indicator "^"
-                                     :discharging-indicator "v"))))
+                                     :discharging-indicator "v")))
+  :documentation "Battery monitor for Symon.")
 
 (cl-defmethod symon-monitor-fetch ((this symon-battery))
   "Return battery status."
@@ -58,6 +97,7 @@ and 59 minutes left before depletion."
                  :discharging-indicator))))
 
 (cl-defmethod symon-monitor-display ((this symon-battery))
+  "Return the display text for the battery monitor."
   (when-let ((status (symon-monitor-value this)))
     (let ((charging (string= (downcase (cdr (assoc ?L status))) "ac"))
           (percent (read (cdr (assoc ?p status))))
@@ -70,3 +110,4 @@ and 59 minutes left before depletion."
         (propertize 'face (symon-battery--face charging time-left))))))
 
 (provide 'symon-battery)
+;;; symon-battery.el ends here
