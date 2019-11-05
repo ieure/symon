@@ -1,6 +1,5 @@
 (require 'symon)
-
-(require 'symon)
+(require 'battery)
 
 (defgroup symon-battery nil
   "Customization for Symon battery monitor."
