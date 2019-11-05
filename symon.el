@@ -48,7 +48,7 @@
 (defconst symon-version "2.0.0")
 
 (defgroup symon nil
-  "tiny graphical system monitor"
+  "Tiny graphical system monitor"
   :group 'emacs)
 
 ;; + customs
