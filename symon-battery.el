@@ -57,10 +57,12 @@ and 59 minutes left before depletion."
                                      :discharging-indicator "v"))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-battery))
+  "Return battery status."
   (when battery-status-function
     (funcall battery-status-function)))
 
 (cl-defmethod symon-battery--indicator ((this symon-battery))
+  "Return the battery charging or discharging indicator."
   (with-slots (display-opts) this
     (plist-get display-opts
                (if charging :charging-indicator

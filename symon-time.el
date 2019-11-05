@@ -48,12 +48,15 @@ time."
     (format-time-string time)))
 
 (defclass symon-time (symon-monitor)
-  ((default-display-opts '(:format "%H:%M"))))
+  ((default-display-opts '(:format "%H:%M")))
+  :documentation "Display the time in Symon.")
 
 (cl-defmethod symon-monitor-fetch ((this symon-time))
+  "Fetch the current time."
   (current-time))
 
 (cl-defmethod symon-monitor-display ((this symon-time))
+  "Display the current time according to the configured format."
   (thread-first
       (symon-time--format ,format)
     (propertize 'face 'symon-time-face)))
