@@ -3,12 +3,12 @@
 
  ;; Linux
 
-(defconst piemon-cpu--linux-path
+(defconst symon-cpu--linux-path
   "/sys/devices/system/cpu/")
 
 (defun symon-cpu--path (cpu-num &rest stats)
   "Return the path for stat STAT on CPU CPU-NUM."
-  (concat (format "%scpu%d" symon-cpu-path cpu-num)
+  (concat (format "%scpu%d" symon-cpu--linux-path cpu-num)
           (when stats (concat "/" (c-concat-separated stats "/")))))
 
 (defun symon--slurp-cpu (cpu-num &rest stats)
@@ -33,10 +33,10 @@
 (defun symon-cpu--cpus ()
   "Return (ONLINE-CPU-IDS . TOTAL-NUM-CPUS)."
   (cons
-   (thread-first (concat symon-cpu-path "/online")
+   (thread-first (concat symon-cpu--linux-path "/online")
      (symon-monitor--slurp)
      (symon-cpu--ranges))
-   (thread-first (concat symon-cpu-path "/possible")
+   (thread-first (concat symon-cpu--linux-path "/possible")
      (symon-monitor--slurp)
      (symon-cpu--ranges)
      (length))))

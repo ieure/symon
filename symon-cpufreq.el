@@ -4,47 +4,46 @@
 
  ;; Linux
 
-(defun piemon-cpu--freq (cpu)
+(defun symon-cpu--freq (cpu)
   "Return the clock frequency of CPU."
   (cl-loop for stat in '("cpuinfo_min_freq" "cpuinfo_max_freq" "scaling_cur_freq")
-           collect (read (piemon--slurp-cpu cpu "cpufreq" stat))))
+           collect (read (symon--slurp-cpu cpu "cpufreq" stat))))
 
-(defun piemon-cpu--freqs (cpus)
+(defun symon-cpu--freqs (cpus)
   "Return the clock frequency information for CPUS."
-  (mapcar #'piemon-cpu--freq cpus))
+  (mapcar #'symon-cpu--freq cpus))
 
-(defun piemon-cpu--minfreq (&optional cpus)
-  (/ (reduce #'min (mapcar #'car (piemon-cpu--freqs (car (piemon-cpu--cpus))))) 1000.0))
+(defun symon-cpu--minfreq (&optional cpus)
+  (/ (reduce #'min (mapcar #'car (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
 
-(defun piemon-cpu--maxfreq (&optional cpus)
-  (/ (reduce #'max (mapcar #'cadr (piemon-cpu--freqs (car (piemon-cpu--cpus))))) 1000.0))
+(defun symon-cpu--maxfreq (&optional cpus)
+  (/ (reduce #'max (mapcar #'cadr (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
 
 (defclass symon-cpufreq-linux (symon-monitor-history)
-  ((cpus :initform (car (symon-cpu--cpus)))))
+  ((cpus :type list :initarg :cpus)
+   (default-display-opts :initform nil)))
 
-(cl-defmethod symon-monitor-setup ((this symon-cpu-freq-linux))
-  (with-slots (display-opts cpus) this
-    (unless cpus
-      (setf cpus (piemon-cpu--cpus)))
+(cl-defmethod initialize-instance :around ((this symon-cpufreq-linux) &rest _)
+  (unless (slot-boundp this 'cpus)
+    (oset this cpus (car (symon-cpu--cpus))))
 
-    (unless (null (plist-get display-opts :sparkline))
-      
-    (plist-put display-opts :))
-    
-    )
-  
+  (with-slots (cpus default-display-opts) this
+    (plist-put default-display-opts :sparkline 
+               `(:type gridded
+                       :lower-bound ,(symon-cpu--minfreq cpus)
+                       :upper-bound ,(symon-cpu--maxfreq cpus))))
   (cl-call-next-method))
 
 (cl-defmethod symon-monitor-fetch ((this symon-cpufreq-linux))
   "Return average of all cores in MHz."
   (with-slots (cpus) this
-    (/ (reduce #'+ (mapcar #'caddr cpus)) (length cpu) 1000.0)))
+    (/ (reduce #'+ (mapcar #'caddr (symon-cpu--freqs cpus))) (length cpus) 1000.0)))
 
 (cl-defmethod symon-monitor-display ((this symon-cpufreq-linux))
   (with-slots (cpus) this
-    (let ((mhz (symon-monitor-value this))))
-    (if (> mhz 1000)
-        (format "%.1fGHz" (/ mhz 1000.0))
-      (format "%dMHz" mhz))))
+    (let ((mhz (symon-monitor-value this)))
+      (if (> mhz 1000)
+          (format "%.1fGHz" (/ mhz 1000.0))
+        (format "%dMHz" mhz)))))
 
 (provide 'symon-cpufreq)
