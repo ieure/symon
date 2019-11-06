@@ -174,6 +174,9 @@ This method is called when activating `symon-mode'."
 
    ;; Internal slots
 
+   (default-sparkline-opts
+     :type list
+     :initform '(:type gridded))
    (history
     :accessor symon-monitor-history
     :documentation "Ring of historical monitor values")
@@ -183,6 +186,12 @@ This method is called when activating `symon-mode'."
 
   :abstract t
   :documentation "Monitor class which stores a history of values.")
+
+(cl-defmethod initialize-instance :before ((this symon-monitor-history) &rest _)
+  (with-slots (default-display-opts default-sparkline-opts) this
+    (setq default-display-opts (symon-monitor--plist-merge
+                        default-display-opts
+                        `(:sparkline ,default-sparkline-opts)))))
 
 (cl-defmethod initialize-instance :after ((this symon-monitor-history) &rest _)
   (with-slots (history-size display-opts history sparkline) this
@@ -194,7 +203,7 @@ This method is called when activating `symon-mode'."
   (oref this history))
 
 (cl-defmethod symon-monitor-value ((this symon-monitor-history))
-  (oref this value))
+  (car (ring-elements (symon-monitor-history this))))
 
 (cl-defmethod symon-monitor-update :before ((this symon-monitor-history))
   (ring-insert (oref this history) (symon-monitor-fetch this)))
