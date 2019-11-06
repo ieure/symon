@@ -102,7 +102,6 @@
                  :initarg :display-opts
                  :documentation "User-specified display options for this monitor.")
    (default-display-opts :type list
-     :type list
      :documentation "Default display options for this monitor.")
 
    ;; Internal slots

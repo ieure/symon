@@ -6,7 +6,7 @@
 
 (defclass symon-memory-linux (symon-monitor-history)
   ((default-display-opts
-     :initform '(:index "MEM:" :unit "%" :sparkline t))))
+     :initform '(:index "MEM:" :unit "%"))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-memory-linux))
   (cl-destructuring-bind (memtotal memavailable memfree buffers cached)

@@ -60,7 +60,7 @@
   ((last-total-ticks :type integer :initform 0)
    (last-idle-ticks :type integer :initform 0)
    (default-display-opts :type list
-     :initform '(:index "CPU:" :unit "%" :sparkline t))))
+     :initform '(:index "CPU:" :unit "%"))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-cpu-linux))
   (cl-destructuring-bind (cpu)

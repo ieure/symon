@@ -46,16 +46,16 @@ while(1)                                                            \
   (symon-windows--maybe-kill-process))
 
 (defclass symon-windows-battery (symon-monitor-windows symon-monitor-history)
-  ((default-display-options '(:index "BAT:" :unit "%" :sparkline t))))
+  ((default-display-opts :initform '(:index "BAT:" :unit "%"))))
 
 (cl-defmethod symon-windows-battery ((this symon-windows-battery))
   (symon--read-value-from-process-buffer "bat"))
 
 (defclass symon-windows-network-rx (symon-monitor-windows symon-linux-network-rx)
   ((default-display-opts
-     `(:index "RX:" :unit "KB/s" :sparkline t
-              :upper-bound ,symon-network-rx-upper-bound
-              :lower-bound ,symon-network-rx-lower-bound)))
+     :initform `(:index "RX:" :unit "KB/s"
+                        :upper-bound ,symon-network-rx-upper-bound
+                        :lower-bound ,symon-network-rx-lower-bound)))
 
   :fetch )
 

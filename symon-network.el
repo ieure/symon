@@ -6,7 +6,8 @@
 (defclass symon-linux-network-rx (symon-monitor-history)
   ((default-display-opts
      :type list
-     :initform '(:index "RX:" :unit "KB/s" :sparkline t
+     :initform '(:index "RX:" 
+                        :unit "KB/s"
                         :upper-bound 300
                         :lower-bound 0))))
 
@@ -27,7 +28,8 @@
 (defclass symon-linux-network-tx (symon-monitor-history)
   ((default-display-opts
      :type list
-     :initform '(:index "RX:" :unit "KB/s" :sparkline t
+     :initform '(:index "RX:" 
+                        :unit "KB/s"
                         :upper-bound 100
                         :lower-bound 0))))
 

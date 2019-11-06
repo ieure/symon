@@ -35,8 +35,10 @@ The following display-opts are supported:
  ;; Windows
 
 (defclass symon-swap-windows (symon-monitor-windows symon-monitor-history)
-  ((default-display-opts `(:index "PF:" :unit "MB" :sparkline t
-                                  :upper-bound ,symon-windows-page-file-upper-bound))))
+  ((default-display-opts
+     :initform `(:index "PF:" 
+                        :unit "MB"
+                        :upper-bound ,symon-windows-page-file-upper-bound))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-swap-windows))
   (symon--read-value-from-process-buffer "swap"))
