@@ -37,6 +37,11 @@
 (require 'symon-monitor)
 (require 's)
 
+(defface symon-temp-face
+  '((t :inherit default))
+  "Face for Symon temperature display."
+  :group 'symon)
+
 (defun symon-temp--sensors (device)
   "Return a list of all sensors under DEVICE."
   (let ((default-directory device))
@@ -101,7 +106,6 @@
 
 ;;;###autoload
 (defclass symon-temp (symon-monitor-history)
-
   ((device :type string
            :initarg :device
            :documentation "Sysfs path containing temp sensor
@@ -129,6 +133,9 @@ outputs, ex. /sys/class/hwmon/hwmon2")
 (cl-defmethod symon-monitor-fetch ((this symon-temp))
   (with-slots (device sensors) this
     (symon-temp--average device sensors)))
+
+(cl-defmethod symon-monitor-display ((this symon-temp))
+  (propertize (cl-call-next-method) 'face 'symon-temp-face))
 
 (provide 'symon-temp)
 ;;; symon-temp.el ends here
