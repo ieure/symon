@@ -58,7 +58,7 @@ rendering."
 
 (cl-defmethod symon-sparkline-graph ((this symon-sparkline) data)
   "Graph DATA."
-  (let ((xbm-image (symon-sparkline-graph data)))
+  (let ((xbm-image (symon-sparkline->xbm this data)))
     (if symon-sparkline-use-xpm
         (symon-sparkline--xbm->xpm xbm-image)
       xbm-image)))
