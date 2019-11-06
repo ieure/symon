@@ -77,7 +77,8 @@ time."
 
 ;;;###autoload
 (defclass symon-time (symon-monitor)
-  ((default-display-opts '(:format "%H:%M")
+  ((default-display-opts
+     :initform '(:format "%H:%M")
      :documentation "Default options for time display.
 
 :format is passed to `symon-time--format' to determine what

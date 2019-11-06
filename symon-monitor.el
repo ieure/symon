@@ -102,7 +102,6 @@
                  :initarg :display-opts
                  :documentation "User-specified display options for this monitor.")
    (default-display-opts :type list
-     :initform nil
      :type list
      :documentation "Default display options for this monitor.")
 
@@ -128,16 +127,17 @@
       (setq opts (plist-put opts (pop user) (pop user))))
     opts))
 
+(cl-defmethod initialize-instance :after ((this symon-monitor) &rest _)
+  ;; Merge display opts
+  (with-slots (display-opts default-display-opts) this
+    (setf display-opts (symon-monitor--plist-merge
+                        default-display-opts
+                        display-opts))))
+
 (cl-defmethod symon-monitor-setup ((this symon-monitor))
   "Setup this monitor.
 
 This method is called when activating `symon-mode'."
-
-  ;; Merge display opts
-  (with-slots (display-opts default-display-opts) this
-    (setq display-opts (symon-monitor--plist-merge
-                        default-display-opts
-                        display-opts)))
 
   (oset this timer
         (run-with-timer 0 (oref this interval)
@@ -156,13 +156,13 @@ This method is called when activating `symon-mode'."
 
 (cl-defmethod symon-monitor-display ((this symon-monitor))
   "Default display method for Symon monitors."
-  (let* ((val (car (ring-elements (oref this history))))
-         (plist (oref this display-opts))
-         (index (plist-get plist :index))
-         (unit (plist-get plist :unit)))
-    (concat index
-            (if (not (numberp val)) "N/A"
-              (format "%d%s" val unit)))))
+  (with-slots (display-opts) this
+    (let ((val (symon-monitor-value this))
+          (index (or (plist-get display-opts :index) ""))
+          (unit (or (plist-get display-opts :unit) "")))
+      (concat index
+              (if (not (numberp val)) "N/A"
+                (format "%d%s" val unit))))))
 
 
  ;; History monitor
@@ -184,9 +184,7 @@ This method is called when activating `symon-mode'."
   :abstract t
   :documentation "Monitor class which stores a history of values.")
 
-(cl-defmethod symon-monitor-setup ((this symon-monitor-history))
-  (cl-call-next-method)
-
+(cl-defmethod initialize-instance :after ((this symon-monitor-history) &rest _)
   (with-slots (history-size display-opts history sparkline) this
     (setf history (symon-monitor--make-history-ring history-size))
     (when-let ((sparkline-opts (plist-get display-opts :sparkline)))

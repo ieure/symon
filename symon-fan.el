@@ -37,19 +37,23 @@
 ;;;###autoload
 (defclass symon-fan (symon-monitor-history)
   ((fan :type string
+        :initarg :fan
         :documentation "The fan to monitor")
+
    (default-display-opts '(:unit "rpm"
                                  :hide t
                                  :sparkline t))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-fan))
+  (with-slots (fan) this
     (read (symon-monitor--slurp fan))))
 
 (cl-defmethod symon-monitor-display ((this symon-fan))
   (let ((rpm (symon-monitor-value this))
-        (hide (plist-get (oref this display-opts) :hide))))
-  (unless (and hide (= rpm 0))
-    (cl-call-next-method)))
+        (hide (plist-get (oref this display-opts) :hide)))
+    (unless (and hide (= rpm 0))
+      (cl-call-next-method))))
+
 
 (provide 'symon-fan)
 ;;; symon-fan.el ends here
