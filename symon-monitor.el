@@ -1,3 +1,31 @@
+;;; symon-monitor.el --- Monitor classes             -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2015 zk_phi
+;; Copyright (C) 2019  Ian Eure
+
+;; Author: zk_phi
+;; Author: Ian Eure <ian@retrospec.tv>
+;; Keywords: extensions, unix
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This file contains the base code for Symon monitors.
+
+;;; Code:
+
 (require 'symon-sparkline)
 
  ;; I/O helpers
@@ -23,6 +51,7 @@
   (with-temp-buffer
     (insert-file-contents file)
     (buffer-substring (point-min) (line-end-position))))
+
 
  ;; Process management
 
@@ -59,6 +88,7 @@
   (when (and (zerop symon--process-reference-count)
              (get-buffer symon--process-buffer-name))
     (kill-buffer symon--process-buffer-name)))
+
 
  ;; Class definitions
 
@@ -134,21 +164,33 @@ This method is called when activating `symon-mode'."
             (if (not (numberp val)) "N/A"
               (format "%d%s" val unit)))))
 
+
+ ;; History monitor
+
 (defclass symon-monitor-history (symon-monitor)
   ((history-size :type integer :custom integer
                  :initform 50
                  :initarg :history-size)
+
+   ;; Internal slots
+
    (history
     :accessor symon-monitor-history
-    :documentation "Ring of historical monitor values"))
+    :documentation "Ring of historical monitor values")
+   (sparkline
+    :initform nil
+    :documentation "Sparkline rendering instance for this monitor."))
 
   :abstract t
   :documentation "Monitor class which stores a history of values.")
 
 (cl-defmethod symon-monitor-setup ((this symon-monitor-history))
-  (oset this history (symon-monitor--make-history-ring
-                      (oref this history-size)))
-  (cl-call-next-method))
+  (cl-call-next-method)
+
+  (with-slots (history-size display-opts history sparkline) this
+    (setf history (symon-monitor--make-history-ring history-size))
+    (when-let ((sparkline-opts (plist-get display-opts :sparkline)))
+      (setf sparkline (apply #'symon-sparkline sparkline-opts)))))
 
 (cl-defmethod symon-monitor-history ((this symon-monitor-history))
   (oref this history))
@@ -161,19 +203,13 @@ This method is called when activating `symon-mode'."
 
 (cl-defmethod symon-monitor-display ((this symon-monitor-history))
   "Default display method for Symon monitors."
-  (let* ((lst (ring-elements (oref this history)))
-         (plist (oref this display-opts))
-         (sparkline (plist-get plist :sparkline))
-         (upper-bound (plist-get plist :upper-bound))
-         (lower-bound (plist-get plist :lower-bound)))
+  (with-slots (sparkline)
+      (concat
+       (cl-call-next-method)
+       (when (and sparkline (window-system))
+         (propertize " " 'display (symon-sparkline-graph (ring-elements (symon-monitor-history this))))))))
 
-    (concat (cl-call-next-method)
-            (when (and sparkline (window-system))
-              (let ((sparkline (symon--make-sparkline
-                                lst lower-bound upper-bound)))
-                (when symon-sparkline-use-xpm
-                  (setq sparkline
-                        (symon--convert-sparkline-to-xpm sparkline)))
-                (propertize " " 'display sparkline))))))
+
 
 (provide 'symon-monitor)
+;;; symon-monitor.el ends here

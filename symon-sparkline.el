@@ -1,79 +1,161 @@
-;; sparkline
+;;; symon-sparkline.el --- Sparkline generators    -*- lexical-binding: t; -*-
 
-(defcustom symon-sparkline-height 11
-  "height of sparklines."
-  :group 'symon)
+;; Copyright (C) 2015 zk_phi
+;; Copyright (C) 2019  Ian Eure
 
-(defcustom symon-sparkline-width 80
-  "width of sparklines."
-  :group 'symon)
+;; Author: zk_phi
+;; Author: Ian Eure <ian@retrospec.tv>
+;; Keywords: multimedia, lisp
 
-(defcustom symon-sparkline-ascent 100
-  "`:ascent' property for sparklines."
-  :group 'symon)
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-(defcustom symon-sparkline-thickness 2
-  "line width of sparklines."
-  :group 'symon)
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-(defcustom symon-sparkline-type 'gridded
-  "type of sparklines."
-  :group 'symon)
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-;; some darwin builds cannot render xbm images (foreground color is
-;; always black), so convert to xpm before rendering.
+;;; Commentary:
+
+;;
+
+;;; Code:
+
 (defcustom symon-sparkline-use-xpm (eq system-type 'darwin)
-  "when non-nil, convert sparklines to xpm from xbm before
+  "When non-nil, convert sparklines to xpm from xbm before
 rendering."
   :group 'symon)
 
-;;   + sparkline generator
+(defclass symon-sparkline ()
+  ((height :type integer :initarg :height :initform 11
+           :documentation "Graph height, in pixels.")
+   (width :type integer :initarg :width :initform 80
+          :documentation "Graph width, in pixels.")
 
-;; sparkline-types are internally a symbol with property
-;; 'symon-sparkline-type associated to a function that generates a
-;; 2d-bool-vector.
+   (ascent :type integer :initarg :ascent :initform 100)
+   (thickness :type integer :initarg :thickness :initform 2)
 
-(defvar symon--sparkline-base-cache
-  [nil symon-sparkline-width symon-sparkline-height nil])
+   (upper-bound :type float :initarg :upper-bound :initform 100.0
+                :documentation "The maximum possible value for this graph.")
+   (lower-bound :type float :initarg :lower-bound :initform 0.0
+                :documentation "The minimim possible value for this graph.")
 
-(defun symon--get-sparkline-base ()
-  (unless (and (eq (aref symon--sparkline-base-cache 0) symon-sparkline-type)
-               (= (aref symon--sparkline-base-cache 1) symon-sparkline-width)
-               (= (aref symon--sparkline-base-cache 2) symon-sparkline-height))
-    (aset symon--sparkline-base-cache 0 symon-sparkline-type)
-    (aset symon--sparkline-base-cache 1 symon-sparkline-width)
-    (aset symon--sparkline-base-cache 2 symon-sparkline-height)
-    (aset symon--sparkline-base-cache 3
-          (funcall (get symon-sparkline-type 'symon-sparkline-type))))
-  (copy-sequence (aref symon--sparkline-base-cache 3)))
+   ;; Internal
+   (cache :initform nil
+          :documentation "Cached copy of the empty graph for this sparkline."))
+  :abstract t)
 
-(cl-defun symon--make-sparkline (list &key (()))
-  "make sparkline image from LIST."
-  (let ((num-samples (length list)))
+(cl-defmethod symon-sparkline-empty ((this symon-sparkline))
+  "Get base empty graph."
+  (with-slots (cache) this
+    (or cache
+        (setf cache (symon-sparkline--make-empty this)))))
+
+(cl-defmethod symon-sparkline-graph ((this symon-sparkline) data)
+  "Graph DATA."
+  (let ((xbm-image (symon-sparkline-graph data)))
+    (if symon-sparkline-use-xpm
+        (symon-sparkline--xbm->xpm xbm-image)
+      xbm-image)))
+
+(cl-defmethod symon-sparkline->xbm ((this symon-sparkline) data)
+  "Graph DATA in XBM format."
+  (let ((num-samples (length data)))
     (unless (zerop num-samples)
-      (let* ((image-data (symon--get-sparkline-base))
-             (maximum (if maximum (float maximum) 100.0))
-             (minimum (if minimum (float minimum) 0.0))
-             (topmargin (1- symon-sparkline-thickness))
-             (height (- symon-sparkline-height topmargin))
-             (height-per-point (/ height (1+ (- maximum minimum))))
-             (width-per-sample (/ symon-sparkline-width (float num-samples)))
-             (samples (apply 'vector list))
-             sample y ix)
-        (dotimes (x symon-sparkline-width)
-          (setq sample (aref samples (floor (/ x width-per-sample))))
-          (when (numberp sample)
-            (setq y (floor (* (- sample minimum) height-per-point)))
-            (when (and (<= 0 y) (< y height))
-              (dotimes (dy symon-sparkline-thickness)
-                (aset image-data
-                      (+ (* (- symon-sparkline-height (+ y dy) 1) symon-sparkline-width) x)
-                      t)))))
-        `(image :type xbm :data ,image-data :ascent ,symon-sparkline-ascent
-                :height ,symon-sparkline-height :width ,symon-sparkline-width)))))
+      (with-slots (height width thickness ascent upper-bound lower-bound) this
+        (let* ((image-data (symon-sparkline-empty this))
+               (topmargin (1- thickness))
+               (height (- height topmargin))
+               (height-per-point (/ height (1+ (- upper-bound lower-bound))))
+               (width-per-sample (/ width (float num-samples)))
+               (samples (apply 'vector data))
+               (sample nil)
+               (y nil)
+               (ix nil))
+          (dotimes (x width)
+            (setq sample (aref samples (floor (/ x width-per-sample))))
+            (when (numberp sample)
+              (setq y (floor (* (- sample lower-bound) height-per-point)))
+              (when (and (<= 0 y) (< y height))
+                (dotimes (dy thickness)
+                  (aset image-data
+                        (+ (* (- height (+ y dy) 1) width) x)
+                        t)))))
+          `(image :type xbm :data ,image-data :ascent ,ascent
+                  :height ,height :width ,width))))))
 
-(defun symon--convert-sparkline-to-xpm (sparkline)
-  "convert sparkline to an xpm image."
+(defun symon-sparkline--strip-type (args)
+  (let ((new-args nil))
+    (while args
+      (let* ((k (pop args))
+             (v (pop args)))
+        (unless (eq k :type)
+          (push k new-args)
+          (push v new-args))))
+    (nreverse new-args)))
+
+(defun symon-sparkline (&rest args)
+  (let ((sym (intern (concat "symon-sparkline-" (symbol-name (plist-get args :type))))))
+    (unless (fboundp sym)
+      (error "Unknown sparkline type `%s'" (plist-get args :type)))
+    (funcall sym (symon-sparkline--strip-type args))))
+
+
+
+(defclass symon-sparkline-plain (symon-sparkline) nil)
+
+(cl-defmethod symon-sparkline--make-empty ((this symon-sparkline-plain))
+  "Create a new empty graph for a plain sparkline."
+  (with-slots (height width) this
+    (make-bool-vector (* height width) nil)))
+
+
+
+(defclass symon-sparkline-bounded (symon-sparkline-plain) nil)
+
+(cl-defmethod symon-sparkline--make-empty ((this symon-sparkline-bounded))
+  "Create a new empty graph for a boxed sparkline."
+  (with-slots (width) this
+    (let ((vec (cl-call-next-method)))
+      (symon--sparkline-draw-vertical-grid vec 0)
+      (symon--sparkline-draw-vertical-grid vec (1- width))
+      vec)))
+
+
+
+(defclass symon-sparkline-boxed (symon-sparkline-bounded) nil)
+
+(cl-defmethod symon-sparkline--make-empty ((this symon-sparkline-boxed))
+  "Create a new empty graph for a boxed sparkline."
+  (with-slots (width) this
+    (let ((vec (cl-call-next-method)))
+      (symon--sparkline-draw-vertical-grid vec 0)
+      (symon--sparkline-draw-vertical-grid vec (1- width))
+      vec)))
+
+
+
+(defclass symon-sparkline-gridded (symon-sparkline-boxed) nil)
+
+(cl-defmethod symon-sparkline--make-empty ((this symon-sparkline-gridded))
+  "Create a new empty graph for a gridded sparkline."
+  (with-slots (height width) this
+    (let ((vec (cl-call-next-method)))
+      (symon--sparkline-draw-horizontal-grid vec (/ height 2))
+      (symon--sparkline-draw-vertical-grid   vec (/ width 4))
+      (symon--sparkline-draw-vertical-grid   vec (/ width 2))
+      (symon--sparkline-draw-vertical-grid   vec (/ (* width 3) 4))
+      vec)))
+
+
+
+(defun symon-sparkline--xbm->xpm (sparkline)
+  "Convert sparkline to an xpm image."
   (let ((data (plist-get (cdr sparkline) :data)))
     (with-temp-buffer
       (insert (format "/* XPM */
@@ -91,43 +173,5 @@ static char * sparkline_xpm[] = { \"%d %d 2 1\", \"@ c %s\", \". c none\""
       `(image :type xpm :data ,(buffer-string) :ascent ,symon-sparkline-ascent
               :height ,symon-sparkline-height :width ,symon-sparkline-width))))
 
-
-;; + predefined sparkline types
-
-(defun symon--sparkline-draw-horizontal-grid (vec y)
-  (dotimes (x/2 (/ symon-sparkline-width 2))
-    (aset vec (+ (* y symon-sparkline-width) (* x/2 2)) t)))
-
-(defun symon--sparkline-draw-vertical-grid (vec x)
-  (dotimes (y/2 (/ symon-sparkline-height 2))
-    (aset vec (+ (* (* y/2 2) symon-sparkline-width) x) t)))
-
-(defun symon--make-plain-sparkline ()
-  (make-bool-vector (* symon-sparkline-height symon-sparkline-width) nil))
-
-(defun symon--make-bounded-sparkline ()
-  (let ((vec (symon--make-plain-sparkline)))
-    (symon--sparkline-draw-horizontal-grid vec 0)
-    (symon--sparkline-draw-horizontal-grid vec (1- symon-sparkline-height))
-    vec))
-
-(defun symon--make-boxed-sparkline ()
-  (let ((vec (symon--make-bounded-sparkline)))
-    (symon--sparkline-draw-vertical-grid vec 0)
-    (symon--sparkline-draw-vertical-grid vec (1- symon-sparkline-width))
-    vec))
-
-(defun symon--make-gridded-sparkline ()
-  (let ((vec (symon--make-boxed-sparkline)))
-    (symon--sparkline-draw-horizontal-grid vec (/ symon-sparkline-height 2))
-    (symon--sparkline-draw-vertical-grid   vec (/ symon-sparkline-width 4))
-    (symon--sparkline-draw-vertical-grid   vec (/ symon-sparkline-width 2))
-    (symon--sparkline-draw-vertical-grid   vec (/ (* symon-sparkline-width 3) 4))
-    vec))
-
-(put 'plain 'symon-sparkline-type 'symon--make-plain-sparkline)
-(put 'bounded 'symon-sparkline-type 'symon--make-bounded-sparkline)
-(put 'boxed 'symon-sparkline-type 'symon--make-boxed-sparkline)
-(put 'gridded 'symon-sparkline-type 'symon--make-gridded-sparkline)
-
 (provide 'symon-sparkline)
+;;; symon-sparkline.el ends here
