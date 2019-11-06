@@ -23,7 +23,7 @@ while true; do
     sleep %d
 done" symon-refresh-rate)))
 
-(defclass symon-monitor-darwin ())
+(defclass symon-monitor-darwin () nil)
 
 (cl-defmethod symon-monitor-setup ((this symon-monitor-darwin))
   (symon-darwin--maybe-start-process))

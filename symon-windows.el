@@ -37,7 +37,7 @@ while(1)                                                            \
     sleep %d                                                        \
 }" symon-refresh-rate)))
 
-(defclass symon-monitor-windows ())
+(defclass symon-monitor-windows () nil)
 
 (cl-defmethod symon-monitor-setup ((this symon-monitor-windows))
   (symon-windows--maybe-start-process))

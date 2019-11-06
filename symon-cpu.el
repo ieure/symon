@@ -77,7 +77,7 @@
 
  ;; macOS
 
-(defclass symon-cpu-darwin (symon-monitor-darwin symon-monitor-history))
+(defclass symon-cpu-darwin (symon-monitor-darwin symon-monitor-history) nil)
 
 (cl-defmethod symon-monitor-fetch ((this symon-cpu-darwin))
   (symon--read-value-from-process-buffer "cpu"))
@@ -85,7 +85,7 @@
 
  ;; Windows
 
-(defclass symon-cpu-windows (symon-monitor-windows symon-monitor-history))
+(defclass symon-cpu-windows (symon-monitor-windows symon-monitor-history) nil)
 
 (cl-defmethod symon-monitor-fetch ((this symon-cpu-windows))
   (symon--read-value-from-process-buffer "cpu"))
