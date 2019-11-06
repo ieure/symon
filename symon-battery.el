@@ -89,7 +89,7 @@ estimated time to depletion, returns `symon-battery-low-face'."
   (when battery-status-function
     (funcall battery-status-function)))
 
-(cl-defmethod symon-battery--indicator ((this symon-battery))
+(cl-defmethod symon-battery--indicator ((this symon-battery) charging)
   "Return the battery charging or discharging indicator."
   (with-slots (display-opts) this
     (plist-get display-opts
@@ -106,7 +106,7 @@ estimated time to depletion, returns `symon-battery-low-face'."
           (format "%d%%%s"
                   percent
                   (if (string= time-left "N/A")
-                      "" (concat (symon-battery--indicator this) time-left)))
+                      "" (concat (symon-battery--indicator this charging) time-left)))
         (propertize 'face (symon-battery--face charging time-left))))))
 
 (provide 'symon-battery)
