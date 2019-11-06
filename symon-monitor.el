@@ -203,7 +203,7 @@ This method is called when activating `symon-mode'."
 
 (cl-defmethod symon-monitor-display ((this symon-monitor-history))
   "Default display method for Symon monitors."
-  (with-slots (sparkline)
+  (with-slots (sparkline) this
       (concat
        (cl-call-next-method)
        (when (and sparkline (window-system))

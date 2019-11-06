@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(require 'symon)
+(require 'symon-monitor)
 
 (defun symon-fan--fans ()
   "Return all known fans."
