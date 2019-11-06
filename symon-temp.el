@@ -101,27 +101,28 @@
 
 ;;;###autoload
 (defclass symon-temp (symon-monitor-history)
-  ;; (name device &key (sensors nil) (index 'default) (sparkline nil))
 
   ((device :type string
+           :initarg :device
            :documentation "Sysfs path containing temp sensor
 outputs, ex. /sys/class/hwmon/hwmon2")
    (sensors :type list
+            :initarg sensors
             :documentation
             "The specific sensors of device to monitor.  When empty,
    uses all available temperature sensors for that device.  When
    multiple sensors are specified, the average is displayed.")
 
-   (default-display-options :type list
+   (default-display-opts :type list
      :initform '(:unit "℃")))
 
   :documentation
   "A Symon monitor for hwmon temperatures.")
 
-(cl-defmethod symon-monitor-setup ((this symon-temp))
-  (with-slots (sensors default-display-opts) this
-    (unless sensors
-      (setq sensors(mapcar #'car (symon-temp--sensors device))))
+(cl-defmethod initialize-instance :after ((this symon-temp) &rest _)
+  (with-slots (device sensors default-display-opts) this
+    (unless (and (slot-boundp this 'sensors) sensors)
+      (setq sensors (mapcar #'car (symon-temp--sensors device))))
     (plist-put default-display-opts
                :index (symon-temp--index-name device sensors))))
 
