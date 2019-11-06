@@ -32,7 +32,7 @@
 
 (defun symon-fan--name (fan-device)
   "Return the name of FAN-DEVICE."
-  (symon--slurp-line (concat (file-name-directory fan-device) "/name")))
+  (symon-monitor--slurp (concat (file-name-directory fan-device) "/name")))
 
 ;;;###autoload
 (defclass symon-fan (symon-monitor-history)
@@ -43,7 +43,7 @@
                                  :sparkline t))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-fan))
-  (read (symon--slurp-line ,fan-device)))
+    (read (symon-monitor--slurp fan))))
 
 (cl-defmethod symon-monitor-display ((this symon-fan))
   (let ((rpm (symon-monitor-value this))

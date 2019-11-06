@@ -42,23 +42,23 @@
   (let ((default-directory device))
     (cl-loop for sensor in (file-expand-wildcards "temp*_label")
              collect (cons (car (s-split "_" sensor))
-                           (symon--slurp-line sensor)))))
+                           (symon-monitor--slurp sensor)))))
 
 (defun symon-temp--max (device sensor)
   "Return the maximum temperature dev DEVICE sensor SENSOR can report."
   (let ((default-directory device))
-    (/ (read (symon--slurp-line (concat sensor "_max"))) 1000.0)))
+    (/ (read (symon-monitor--slurp (concat sensor "_max"))) 1000.0)))
 
 (defun symon-temp--min (device sensor)
   "Return the minumum temperature dev DEVICE sensor SENSOR can report."
   (let ((default-directory device))
-    (or (ignore-errors (/ (read (symon--slurp-line (concat sensor "_min"))) 1000.0))
+    (or (ignore-errors (/ (read (symon-monitor--slurp (concat sensor "_min"))) 1000.0))
         0.0)))
 
 (defun symon-temp--current (device sensor)
   "Return the current temperature of SENSOR under DEVICE."
   (let ((default-directory device))
-    (or (ignore-errors (/ (read (symon--slurp-line (concat sensor "_input"))) 1000.0))
+    (or (ignore-errors (/ (read (symon-monitor--slurp (concat sensor "_input"))) 1000.0))
         0.0)))
 
 (defun symon-temp--average (device sensors)
@@ -87,17 +87,17 @@
 (defun symon-temp-find-name (name)
   "Find hwmon named NAME if there is one."
   (cl-loop for device in (file-expand-wildcards "/sys/class/hwmon/hwmon*")
-           for mon-name = (symon--slurp-line (concat device "/name"))
+           for mon-name = (symon-monitor--slurp (concat device "/name"))
            when (string= name mon-name)
            return device))
 
 (defun symon-temp--index-name (device sensors)
   (concat (if (> (length sensors) 1)
               ;; Use the device name
-              (symon--slurp-line (concat device "/name"))
+              (symon-monitor--slurp (concat device "/name"))
             ;; Use the sensor name
-            (concat (symon--slurp-line (concat device "/name")) " "
-                    (symon--slurp-line (concat device "/" (car sensors) "_label")))) ":"))
+            (concat (symon-monitor--slurp (concat device "/name")) " "
+                    (symon-monitor--slurp (concat device "/" (car sensors) "_label")))) ":"))
 
 ;;;###autoload
 (defclass symon-temp (symon-monitor-history)

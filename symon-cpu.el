@@ -13,7 +13,7 @@
 
 (defun symon--slurp-cpu (cpu-num &rest stats)
   "Return value of stat STAT on CPU CPU-NUM."
-  (symon-monitor--slurp-line (apply #'symon-cpu--path cpu-num stats)))
+  (symon-monitor--slurp (apply #'symon-cpu--path cpu-num stats)))
 
 (defun symon-cpu--range (high-maybe-low)
   "Turn range HIGH-MAYBE-LOW into a sequence of numbers."
@@ -34,10 +34,10 @@
   "Return (ONLINE-CPU-IDS . TOTAL-NUM-CPUS)."
   (cons
    (thread-first (concat symon-cpu-path "/online")
-     (symon--slurp-line)
+     (symon-monitor--slurp)
      (symon-cpu--ranges))
    (thread-first (concat symon-cpu-path "/possible")
-     (symon--slurp-line)
+     (symon-monitor--slurp)
      (symon-cpu--ranges)
      (length))))
 
