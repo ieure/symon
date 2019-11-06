@@ -213,7 +213,8 @@ This method is called when activating `symon-mode'."
       (concat
        (cl-call-next-method)
        (when (and sparkline (window-system))
-         (propertize " " 'display (symon-sparkline-graph sparkline (ring-elements (symon-monitor-history this))))))))
+         (concat " "
+                 (propertize " " 'display (symon-sparkline-graph sparkline (ring-elements (symon-monitor-history this)))))))))
 
 
 
