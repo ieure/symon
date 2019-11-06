@@ -26,6 +26,11 @@
 
 (require 'symon-monitor)
 
+(defface symon-fan-face
+  '((t :inherit default))
+  "Face for Symon fan display."
+  :group 'symon)
+
 (defun symon-fan--fans ()
   "Return all known fans."
   (file-expand-wildcards "/sys/class/hwmon/hwmon*/fan*_input"))
@@ -53,8 +58,7 @@
   (let ((rpm (symon-monitor-value this))
         (hide (plist-get (oref this display-opts) :hide)))
     (unless (and hide rpm (= rpm 0))
-      (cl-call-next-method))))b
-
+      (propertize (cl-call-next-method) 'face 'symon-fan-face))))
 
 (provide 'symon-fan)
 ;;; symon-fan.el ends here
