@@ -40,9 +40,10 @@
         :initarg :fan
         :documentation "The fan to monitor")
 
-   (default-display-opts '(:unit "rpm"
-                                 :hide t
-                                 :sparkline t))))
+   (default-display-opts
+     :type list
+     :initform '(:unit "rpm"
+                       :hide t))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-fan))
   (with-slots (fan) this
@@ -51,8 +52,8 @@
 (cl-defmethod symon-monitor-display ((this symon-fan))
   (let ((rpm (symon-monitor-value this))
         (hide (plist-get (oref this display-opts) :hide)))
-    (unless (and hide (= rpm 0))
-      (cl-call-next-method))))
+    (unless (and hide rpm (= rpm 0))
+      (cl-call-next-method))))b
 
 
 (provide 'symon-fan)
