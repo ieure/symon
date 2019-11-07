@@ -31,7 +31,8 @@
   "Face for Symon fan display."
   :group 'symon)
 
-(defun symon-fan--fans ()
+;;;###autoload
+(defun symon-fan-fans ()
   "Return all known fans."
   (file-expand-wildcards "/sys/class/hwmon/hwmon*/fan*_input"))
 

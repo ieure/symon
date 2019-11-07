@@ -85,6 +85,7 @@
    (cl-loop for sensor in sensors
             collect (symon-temp--min device sensor))))
 
+;;;###autoload
 (defun symon-temp-coretemp-device ()
   "Find the coretemp device, if there is one."
   (symon-temp-find-name "coretemp"))

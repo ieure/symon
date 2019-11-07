@@ -1,5 +1,6 @@
 
 (require 'symon-monitor)
+(require 'symon-darwin)
 (require 'symon-cpu)
 
  ;; Linux
@@ -19,6 +20,7 @@
 (defun symon-cpu--maxfreq (&optional cpus)
   (/ (reduce #'max (mapcar #'cadr (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
 
+;;;###autoload
 (defclass symon-cpufreq-linux (symon-monitor-history)
   ((cpus :type list :initarg :cpus)
    (default-display-opts :initform nil)))

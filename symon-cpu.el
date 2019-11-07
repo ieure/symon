@@ -1,5 +1,7 @@
 
 (require 'symon-monitor)
+(require 'symon-windows)
+(require 'symon-darwin)
 
  ;; Linux
 
@@ -64,7 +66,7 @@
 
 (cl-defmethod symon-monitor-fetch ((this symon-cpu-linux))
   (cl-destructuring-bind (cpu)
-      (symon-linux--read-lines
+      (symon-monitor--linux-read-lines
        "/proc/stat" (lambda (str) (mapcar 'read (split-string str nil t))) '("cpu"))
     (with-slots (last-total-ticks last-idle-ticks) this
       (let ((total (apply '+ cpu)) (idle (nth 3 cpu)))
