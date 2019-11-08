@@ -1,7 +1,7 @@
 ;;; symon-sparkline.el --- Sparkline generators    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 zk_phi
 ;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2015 zk_phi
 
 ;; Author: zk_phi
 ;; Author: Ian Eure <ian@retrospec.tv>
@@ -53,8 +53,18 @@ rendering."
 (cl-defmethod symon-sparkline-empty ((this symon-sparkline))
   "Get base empty graph."
   (with-slots (cache) this
-    (or cache
-        (setf cache (symon-sparkline--make-empty this)))))
+    (copy-sequence (or cache
+        (setf cache (symon-sparkline--make-empty this))))))
+
+(cl-defmethod symon-sparkline--draw-horizontal-grid ((this symon-sparkline) vec y)
+  (with-slots (width) this
+    (dotimes (x/2 (/ width 2))
+      (aset vec (+ (* y width) (* x/2 2)) t))))
+
+(cl-defmethod symon-sparkline--draw-vertical-grid ((this symon-sparkline) vec x)
+  (with-slots (height width) this
+    (dotimes (y/2 (/ height 2))
+      (aset vec (+ (* (* y/2 2) width) x) t))))
 
 (cl-defmethod symon-sparkline-graph ((this symon-sparkline) data)
   "Graph DATA."
@@ -120,10 +130,10 @@ rendering."
 
 (cl-defmethod symon-sparkline--make-empty ((this symon-sparkline-bounded))
   "Create a new empty graph for a boxed sparkline."
-  (with-slots (width) this
+  (with-slots (height) this
     (let ((vec (cl-call-next-method)))
-      (symon--sparkline-draw-vertical-grid vec 0)
-      (symon--sparkline-draw-vertical-grid vec (1- width))
+      (symon-sparkline--draw-horizontal-grid this vec 0)
+      (symon-sparkline--draw-horizontal-grid this vec (1- height))
       vec)))
 
 
@@ -132,10 +142,10 @@ rendering."
 
 (cl-defmethod symon-sparkline--make-empty ((this symon-sparkline-boxed))
   "Create a new empty graph for a boxed sparkline."
-  (with-slots (width) this
+  (with-slots (height width) this
     (let ((vec (cl-call-next-method)))
-      (symon--sparkline-draw-vertical-grid vec 0)
-      (symon--sparkline-draw-vertical-grid vec (1- width))
+      (symon-sparkline--draw-vertical-grid this vec 0)
+      (symon-sparkline--draw-vertical-grid this vec (1- width))
       vec)))
 
 
@@ -146,10 +156,10 @@ rendering."
   "Create a new empty graph for a gridded sparkline."
   (with-slots (height width) this
     (let ((vec (cl-call-next-method)))
-      (symon--sparkline-draw-horizontal-grid vec (/ height 2))
-      (symon--sparkline-draw-vertical-grid   vec (/ width 4))
-      (symon--sparkline-draw-vertical-grid   vec (/ width 2))
-      (symon--sparkline-draw-vertical-grid   vec (/ (* width 3) 4))
+      (symon-sparkline--draw-horizontal-grid this vec (/ height 2))
+      (symon-sparkline--draw-vertical-grid   this vec (/ width 4))
+      (symon-sparkline--draw-vertical-grid   this vec (/ width 2))
+      (symon-sparkline--draw-vertical-grid   this vec (/ (* width 3) 4))
       vec)))
 
 
