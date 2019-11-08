@@ -31,22 +31,22 @@ done" symon-refresh-rate)))
 (cl-defmethod symon-monitor-cleanup ((this symon-monitor-darwin))
   (symon-darwin--maybe-kill-process))
 
-(defclass symon-darwin-network-rx (symon-monitor-darwin symon-linux-network-rx))
+;; (defclass symon-darwin-network-rx (symon-monitor-darwin symon-linux-network-rx))
 
-(cl-defmethod symon-monitor-fetch ((this symon-darwin-network-rx))
-  (with-slots (last-value) this
-    (let ((rx (symon--read-value-from-process-buffer "rx")))
-      (prog1 (when last-value
-               (/ (- rx last-value) symon-refresh-rate 1000))
-        (setf last-value rx)))))
+;; (cl-defmethod symon-monitor-fetch ((this symon-darwin-network-rx))
+;;   (with-slots (last-value) this
+;;     (let ((rx (symon--read-value-from-process-buffer "rx")))
+;;       (prog1 (when last-value
+;;                (/ (- rx last-value) symon-refresh-rate 1000))
+;;         (setf last-value rx)))))
 
-(defclass symon-darwin-network-tx (symon-monitor-darwin symon-linux-network-tx))
+;; (defclass symon-darwin-network-tx (symon-monitor-darwin symon-linux-network-tx))
 
-(cl-defmethod symon-monitor-fetch ((this symon-darwin-network-tx))
-  (with-slots (last-value) this
-    (let ((tx (symon--read-value-from-process-buffer "tx")))
-      (prog1 (when last-value
-               (/ (- tx last-value) symon-refresh-rate 1000))
-        (setf last-value tx)))))
+;; (cl-defmethod symon-monitor-fetch ((this symon-darwin-network-tx))
+;;   (with-slots (last-value) this
+;;     (let ((tx (symon--read-value-from-process-buffer "tx")))
+;;       (prog1 (when last-value
+;;                (/ (- tx last-value) symon-refresh-rate 1000))
+;;         (setf last-value tx)))))
 
 (provide 'symon-darwin)

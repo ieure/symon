@@ -45,54 +45,54 @@ while(1)                                                            \
 (cl-defmethod symon-monitor-cleanup ((this symon-monitor-windows))
   (symon-windows--maybe-kill-process))
 
-(defclass symon-windows-battery (symon-monitor-windows symon-monitor-history)
-  ((default-display-opts :initform '(:index "BAT:" :unit "%"))))
+;; (defclass symon-windows-battery (symon-monitor-windows symon-monitor-history)
+;;   ((default-display-opts :initform '(:index "BAT:" :unit "%"))))
 
-(cl-defmethod symon-windows-battery ((this symon-windows-battery))
-  (symon--read-value-from-process-buffer "bat"))
+;; (cl-defmethod symon-windows-battery ((this symon-windows-battery))
+;;   (symon--read-value-from-process-buffer "bat"))
 
-(defclass symon-windows-network-rx (symon-monitor-windows symon-linux-network-rx)
-  ((default-display-opts
-     :initform `(:index "RX:" :unit "KB/s"
-                        :upper-bound ,symon-network-rx-upper-bound
-                        :lower-bound ,symon-network-rx-lower-bound)))
+;; (defclass symon-windows-network-rx (symon-monitor-windows symon-linux-network-rx)
+;;   ((default-display-opts
+;;      :initform `(:index "RX:" :unit "KB/s"
+;;                         :upper-bound ,symon-network-rx-upper-bound
+;;                         :lower-bound ,symon-network-rx-lower-bound)))
 
-  :fetch )
+;;   :fetch )
 
 
-(cl-defmethod symon-monitor-fetch ((this symon-windows-network-rx))
-  (with 
-   (let ((rx (symon--read-value-from-process-buffer "rx")))
-     (prog1 (when symon-windows--last-network-rx
-              (/ (- rx symon-windows--last-network-rx) symon-refresh-rate))
-       (setq symon-windows--last-network-rx rx)))))
+;; (cl-defmethod symon-monitor-fetch ((this symon-windows-network-rx))
+;;   (with 
+;;    (let ((rx (symon--read-value-from-process-buffer "rx")))
+;;      (prog1 (when symon-windows--last-network-rx
+;;               (/ (- rx symon-windows--last-network-rx) symon-refresh-rate))
+;;        (setq symon-windows--last-network-rx rx)))))
 
-(define-symon-monitor symon-windows-network-rx-monitor
-  :index "RX:" :unit "KB/s" :sparkline t
-  :upper-bound symon-network-rx-upper-bound
-  :lower-bound symon-network-rx-lower-bound
-  :setup (progn
-           (symon-windows--maybe-start-wmi-process)
-           (setq symon-windows--last-network-rx nil))
-  :cleanup (symon--maybe-kill-process)
-  :fetch (let ((rx (symon--read-value-from-process-buffer "rx")))
-           (prog1 (when symon-windows--last-network-rx
-                    (/ (- rx symon-windows--last-network-rx) symon-refresh-rate))
-             (setq symon-windows--last-network-rx rx))))
+;; (define-symon-monitor symon-windows-network-rx-monitor
+;;   :index "RX:" :unit "KB/s" :sparkline t
+;;   :upper-bound symon-network-rx-upper-bound
+;;   :lower-bound symon-network-rx-lower-bound
+;;   :setup (progn
+;;            (symon-windows--maybe-start-wmi-process)
+;;            (setq symon-windows--last-network-rx nil))
+;;   :cleanup (symon--maybe-kill-process)
+;;   :fetch (let ((rx (symon--read-value-from-process-buffer "rx")))
+;;            (prog1 (when symon-windows--last-network-rx
+;;                     (/ (- rx symon-windows--last-network-rx) symon-refresh-rate))
+;;              (setq symon-windows--last-network-rx rx))))
 
-(defvar symon-windows--last-network-tx nil)
+;; (defvar symon-windows--last-network-tx nil)
 
-(define-symon-monitor symon-windows-network-tx-monitor
-  :index "TX:" :unit "KB/s" :sparkline t
-  :upper-bound symon-network-tx-upper-bound
-  :lower-bound symon-network-tx-lower-bound
-  :setup (progn
-           (symon-windows--maybe-start-wmi-process)
-           (setq symon-windows--last-network-tx nil))
-  :cleanup (symon--maybe-kill-process)
-  :fetch (let ((tx (symon--read-value-from-process-buffer "tx")))
-           (prog1 (when symon-windows--last-network-tx
-                    (/ (- tx symon-windows--last-network-tx) symon-refresh-rate))
-             (setq symon-windows--last-network-tx tx))))
+;; (define-symon-monitor symon-windows-network-tx-monitor
+;;   :index "TX:" :unit "KB/s" :sparkline t
+;;   :upper-bound symon-network-tx-upper-bound
+;;   :lower-bound symon-network-tx-lower-bound
+;;   :setup (progn
+;;            (symon-windows--maybe-start-wmi-process)
+;;            (setq symon-windows--last-network-tx nil))
+;;   :cleanup (symon--maybe-kill-process)
+;;   :fetch (let ((tx (symon--read-value-from-process-buffer "tx")))
+;;            (prog1 (when symon-windows--last-network-tx
+;;                     (/ (- tx symon-windows--last-network-tx) symon-refresh-rate))
+;;              (setq symon-windows--last-network-tx tx))))
 
 (provide 'symon-windows)
