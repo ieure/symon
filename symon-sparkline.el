@@ -113,7 +113,7 @@ rendering."
   (let ((sym (intern (concat "symon-sparkline-" (symbol-name (plist-get args :type))))))
     (unless (fboundp sym)
       (error "Unknown sparkline type `%s'" (plist-get args :type)))
-    (funcall sym (symon-sparkline--strip-type args))))
+    (apply sym (symon-sparkline--strip-type args))))
 
 
 
