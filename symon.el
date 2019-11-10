@@ -171,6 +171,11 @@ monitor from:
   (mapc #'cancel-timer symon--timer-objects)
   (mapc #'symon-monitor-cleanup (symon--flatten symon--active-monitors)))
 
+(defun symon--display-catching-errors (monitor)
+  (condition-case e
+      (symon-monitor-display monitor)
+    (error (symon-monitor--maybe-warn this error 'fetch-errors-warned "Fetch"))))
+
 (defun symon--display-update ()
   "update symon display"
   (unless (or cursor-in-echo-area (active-minibuffer-window))
@@ -178,7 +183,7 @@ monitor from:
           (display-string nil))
       (message "%s" (substring
           (cl-loop for monitor in (elt symon--active-monitors symon--active-page)
-                   for output = (symon-monitor-display monitor)
+                   for output = (symon--display-catching-errors monitor)
                    unless (or (null output) (string= "" output))
                    concat " "
                    concat output)

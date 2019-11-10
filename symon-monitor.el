@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'symon-sparkline)
+(require 'ert)
 
  ;; I/O helpers
 
@@ -110,14 +111,42 @@
     :documentation "Fires `symon-monitor-fetch' for this monitor.")
    (value
     :accessor symon-monitor-value
-    :documentation "Most recent value"))
+    :documentation "Most recent fetched value.")
+   (fetch-errors-warned
+    :initform nil
+    :documentation "List of errors from fetching.
+
+This is a list of symbols of errors signaled when calling
+`symon-monitor-fetch' on this monitor.  When fetching a monitor's
+value signals an error, it's displayed as a warning.  Subsequent
+errors of the same type are suppressed.")
+   (display-errors-warned
+    :initform nil
+    :documentation "List of errors from displaying.
+
+This is a list of symbols of errors signaled when calling
+`symon-monitor-display' on this monitor.  When displaying a
+monitor signals an error, it's displayed as a warning.
+Subsequent errors of the same type are suppressed."))
 
   :abstract t
   :documentation "Base (default) Symon monitor class.")
 
+(cl-defmethod symon-monitor--maybe-warn ((this symon-monitor) error errors-warned type)
+  (cl-destructuring-bind (error-symbol data) error
+    (unless (memq error-symbol (slot-value this errors-warned))
+      (push error-symbol (slot-value this errors-warned))
+      (warn "%s of %s failed: %s: %s"
+            type (eieio-object-class this) error-symbol data)
+      ;; Evaluate to nil -- fetch failed, so there's no value.
+      nil)))
+
 (cl-defmethod symon-monitor-update ((this symon-monitor))
   "Update THIS, storing the latest value."
-  (oset this value (symon-monitor-fetch this)))
+  (oset this value
+        (condition-case error
+            (symon-monitor-fetch this)
+          (error (symon-monitor--maybe-warn this error 'fetch-errors-warned "Update")))))
 
 (defun symon-monitor--plist-merge (defaults user)
   (let ((opts (copy-list defaults))
@@ -218,5 +247,14 @@ This method is called when activating `symon-mode'."
 
 
 
+(ert-deftest symon-monitor--test-fetch-error ()
+  (defclass symon-monitor--test-fetch-error (symon-monitor) nil)
+  (cl-defmethod symon-monitor-fetch ((this symon-monitor--test-fetch-error))
+    (error "Testing"))
+
+  (let ((m (symon-monitor--test-fetch-error)))
+    (should (null (memq 'err (oref m fetch-errors-warned))))
+    (should (null (symon-monitor-update m)))
+    (should (memq 'error (oref m fetch-errors-warned)))))
 (provide 'symon-monitor)
 ;;; symon-monitor.el ends here
