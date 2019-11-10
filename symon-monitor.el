@@ -236,7 +236,7 @@ This method is called when activating `symon-mode'."
 (cl-defmethod symon-monitor-value ((this symon-monitor-history))
   (car (ring-elements (symon-monitor-history this))))
 
-(cl-defmethod symon-monitor-update :before ((this symon-monitor-history))
+(cl-defmethod symon-monitor-update :around ((this symon-monitor-history))
   (ring-insert (oref this history) (symon-monitor-fetch this)))
 
 (cl-defmethod symon-monitor-display ((this symon-monitor-history))
@@ -259,5 +259,21 @@ This method is called when activating `symon-mode'."
     (should (null (memq 'err (oref m fetch-errors-warned))))
     (should (null (symon-monitor-update m)))
     (should (memq 'error (oref m fetch-errors-warned)))))
+
+
+
+(ert-deftest symon-monitor-history--test-update ()
+  (defclass symon-monitor-history--test-update (symon-monitor-history)
+    ((n :initform 0)))
+
+  (cl-defmethod symon-monitor-fetch ((this symon-monitor-history--test-update))
+    (incf (slot-value this 'n)))
+
+  (let ((m (symon-monitor-history--test-update)))
+    (should (= 1 (symon-monitor-update m)))
+    (should (= 2 (symon-monitor-update m)))
+    (should (= (symon-monitor-update m) (symon-monitor-value m)))
+    (should (equal '(3 2 1) (seq-take (ring-elements (symon-monitor-history m)) 3)))))
+
 (provide 'symon-monitor)
 ;;; symon-monitor.el ends here
