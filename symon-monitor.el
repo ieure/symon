@@ -157,10 +157,11 @@ Subsequent errors of the same type are suppressed."))
 
 (cl-defmethod initialize-instance :after ((this symon-monitor) &rest _)
   ;; Merge display opts
-  (with-slots (display-opts default-display-opts) this
-    (setf display-opts (symon-monitor--plist-merge
-                        default-display-opts
-                        display-opts))))
+  (when (slot-boundp this 'default-display-opts)
+    (with-slots (display-opts default-display-opts) this
+      (setf display-opts (symon-monitor--plist-merge
+                          default-display-opts
+                          display-opts)))))
 
 (cl-defmethod symon-monitor-setup ((this symon-monitor))
   "Setup this monitor.
@@ -216,10 +217,11 @@ This method is called when activating `symon-mode'."
   :documentation "Monitor class which stores a history of values.")
 
 (cl-defmethod initialize-instance :before ((this symon-monitor-history) &rest _)
-  (with-slots (default-display-opts default-sparkline-opts) this
-    (setq default-display-opts (symon-monitor--plist-merge
-                        default-display-opts
-                        `(:sparkline ,default-sparkline-opts)))))
+  (when (slot-boundp this 'default-display-opts)
+    (with-slots (default-display-opts default-sparkline-opts) this
+      (setq default-display-opts (symon-monitor--plist-merge
+                                  default-display-opts
+                                  `(:sparkline ,default-sparkline-opts))))))
 
 (cl-defmethod initialize-instance :after ((this symon-monitor-history) &rest _)
   (with-slots (history-size display-opts history sparkline) this
