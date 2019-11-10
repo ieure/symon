@@ -181,7 +181,8 @@ This method is called when activating `symon-mode'."
     (oset this timer nil)))
 
 (cl-defmethod symon-monitor-fetch ((this symon-monitor))
-  "Fetch the current monitor value.")
+  "Fetch the current monitor value."
+  (error "No `symon-monitor-fetch' defined for monitor %s" (eieio-object-class this)))
 
 (cl-defmethod symon-monitor-display ((this symon-monitor))
   "Default display method for Symon monitors."
