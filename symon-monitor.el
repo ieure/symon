@@ -280,6 +280,29 @@ This method is called when activating `symon-mode'."
     (should (null (symon-monitor-update m)))
     (should (memq 'error (oref m fetch-errors-warned)))))
 
+(ert-deftest symon-monitor--test-display-opts ()
+  (defclass symon-monitor--test-display-opts (symon-monitor) nil)
+
+  (let ((m (symon-monitor--test-display-opts)))
+    (should (slot-boundp m 'display-opts))
+    (should (null (oref m display-opts))))
+
+  (let ((m (symon-monitor--test-display-opts :display-opts '(:foo 1))))
+    (should (slot-boundp m 'display-opts))
+    (should (equal '(:foo 1) (oref m display-opts)))))
+
+(ert-deftest symon-monitor--test-default-display-opts ()
+  (defclass symon-monitor--test-default-display-opts (symon-monitor)
+    ((default-display-opts :initform '(:foo 1))))
+
+  (let ((m (symon-monitor--test-default-display-opts)))
+    (should (slot-boundp m 'display-opts))
+    (should (equal '(:foo 1) (oref m display-opts))))
+
+  (let ((m (symon-monitor--test-default-display-opts :display-opts '(:bar 2))))
+    (should (slot-boundp m 'display-opts))
+    (should (equal '(:foo 1 :bar 2) (oref m display-opts)))))
+
 
 
 (ert-deftest symon-monitor-history--test-update ()
