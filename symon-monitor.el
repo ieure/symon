@@ -152,7 +152,14 @@ Subsequent errors of the same type are suppressed."))
   (let ((opts (copy-list defaults))
         (user (copy-list user)))
     (while user
-      (setq opts (plist-put opts (pop user) (pop user))))
+      (let ((k (pop user))
+            (v (pop user)))
+        (setq opts
+              (plist-put opts k
+                         (if (consp v)
+                             ;; If user options are a list, recursively merge.
+                             (symon-monitor--plist-merge (plist-get opts k) v)
+                           v)))))
     opts))
 
 (cl-defmethod initialize-instance :after ((this symon-monitor) &rest _)
@@ -247,6 +254,19 @@ This method is called when activating `symon-mode'."
        (when (and sparkline (window-system))
          (concat " "
                  (propertize " " 'display (symon-sparkline-graph sparkline (ring-elements (symon-monitor-history this)))))))))
+
+
+
+(ert-deftest symon-monitor--test-plist-merge ()
+  ;; Unique keys are added
+  (should (equal '(:a 1 :b 2) (symon-monitor--plist-merge '(:a 1) '(:b 2))))
+
+  ;; Duplicate keys are replaced
+  (should (equal '(:a 2) (symon-monitor--plist-merge '(:a 1) '(:a 2))))
+
+  ;; Recursive lists are merged
+  (should (equal '(:a (:foo 1 :bar 2)) (symon-monitor--plist-merge '(:a (:foo 1))
+                                                                   '(:a (:bar 2))))))
 
 
 
