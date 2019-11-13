@@ -174,7 +174,7 @@ monitor from:
 (defun symon--display-catching-errors (monitor)
   (condition-case e
       (symon-monitor-display monitor)
-    (error (symon-monitor--maybe-warn this error 'fetch-errors-warned "Fetch"))))
+    (error (symon-monitor--maybe-warn monitor error 'fetch-errors-warned "Fetch"))))
 
 (defun symon--display-update ()
   "update symon display"
