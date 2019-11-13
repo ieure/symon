@@ -45,7 +45,7 @@
 (defun symon-temp--sensors (device)
   "Return a list of all sensors under DEVICE."
   (let ((default-directory device))
-    (cl-loop for sensor in (file-expand-wildcards "temp*_label")
+    (cl-loop for sensor in (file-expand-wildcards "temp*_input")
              collect (cons (car (s-split "_" sensor))
                            (symon-monitor--slurp sensor)))))
 
@@ -111,8 +111,9 @@
            :initarg :device
            :documentation "Sysfs path containing temp sensor
 outputs, ex. /sys/class/hwmon/hwmon2")
+
    (sensors :type list
-            :initarg sensors
+            :initarg :sensors
             :documentation
             "The specific sensors of device to monitor.  When empty,
    uses all available temperature sensors for that device.  When
@@ -129,7 +130,7 @@ outputs, ex. /sys/class/hwmon/hwmon2")
     (unless (and (slot-boundp this 'sensors) sensors)
       (setq sensors (mapcar #'car (symon-temp--sensors device))))
     (plist-put default-display-opts
-               :index (symon-temp--index-name device sensors))))
+               :index (ignore-errors (symon-temp--index-name device sensors)))))
 
 (cl-defmethod symon-monitor-fetch ((this symon-temp))
   (with-slots (device sensors) this
