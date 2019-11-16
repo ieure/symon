@@ -1,7 +1,7 @@
 ;;; symon-monitor.el --- Monitor classes             -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2019 Ian Eure
 ;; Copyright (C) 2015 zk_phi
-;; Copyright (C) 2019  Ian Eure
 
 ;; Author: zk_phi
 ;; Author: Ian Eure <ian@retrospec.tv>
@@ -133,7 +133,7 @@ Subsequent errors of the same type are suppressed."))
   :documentation "Base (default) Symon monitor class.")
 
 (cl-defmethod symon-monitor--maybe-warn ((this symon-monitor) error errors-warned type)
-  (cl-destructuring-bind (error-symbol data) error
+  (cl-destructuring-bind (error-symbol &rest _) error
     (unless (memq error-symbol (slot-value this errors-warned))
       (push error-symbol (slot-value this errors-warned))
       (warn "%s of %s failed: %s: %s"
