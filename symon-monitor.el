@@ -136,8 +136,8 @@ Subsequent errors of the same type are suppressed."))
   (cl-destructuring-bind (error-symbol &rest _) error
     (unless (memq error-symbol (slot-value this errors-warned))
       (push error-symbol (slot-value this errors-warned))
-      (warn "%s of %s failed: %s: %s"
-            type (eieio-object-class this) error-symbol data)
+      (warn "%s of %s failed: %s"
+            type (eieio-object-class this) error-symbol)
       ;; Evaluate to nil -- fetch failed, so there's no value.
       nil)))
 
