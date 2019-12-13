@@ -1,10 +1,10 @@
-* Xymon
+* Symon
   :PROPERTIES:
   :ID:       448c271a-c9b1-4ac2-9c80-4737529d9ea7
   :END:
 
-  Xymon (pronounced "zymon") is a tiny system monitor which displays
-  system information in the echo area when Emacs is idle.  Xymon is a
+  Symon (pronounced "simon") is a tiny system monitor which displays
+  system information in the echo area when Emacs is idle.  Symon is a
   fork of [[https://github.com/zk-phi/symon][Symon]], with changes to be more generic and extensible.
 
 ** Screenshot
@@ -23,9 +23,9 @@
    Recommended:
 
    #+BEGIN_SRC emacs-lisp :eval never
-     (use-package xymon
+     (use-package symon
        :straight (:host github
-                        :repo "ieure/xymon"))
+                        :repo "ieure/symon"))
    #+END_SRC
 
 ** Usage
@@ -152,12 +152,12 @@
    :ID:       cd1b28e3-3d40-47f6-82e9-1a6eb1f5b658
    :END:
 
-   Xymon uses EIEIO classes to implement monitors, and provides two
+   Symon uses EIEIO classes to implement monitors, and provides two
    base classes to build on:
 
-   - =xymon-monitor=.  This is the most basic class, suitable for
+   - =symon-monitor=.  This is the most basic class, suitable for
      simple non-graphical monitors, such as a time display.
-   - =xymon-monitor-history=.  This class keeps a history of monitor
+   - =symon-monitor-history=.  This class keeps a history of monitor
      values so they can be graphed.  Any monitor with a sparkline uses
      this class.
 
@@ -169,7 +169,7 @@
     The simplest monitor is defined thus:
 
     #+BEGIN_SRC emacs-lisp :eval never
-      (defclass xymon-hello (xymon-monitor))
+      (defclass symon-hello (symon-monitor))
     #+END_SRC
 
     Most customization is handled with generic methods that operate on
@@ -181,7 +181,7 @@
     to when the monitor object is created.
 
     #+BEGIN_SRC emacs-lisp :eval never
-      (defclass xymon-hello (xymon-monitor)
+      (defclass symon-hello (symon-monitor)
         ((who :initform "world"
               :initarg :who)))
     #+END_SRC
@@ -200,11 +200,11 @@
     getting the monitor’s current value.
 
     Fetching and display are separate operations which run
-    asynchronously.  The =xymon-monitor= class handles polling this
+    asynchronously.  The =symon-monitor= class handles polling this
     function periodically and storing its value(s) for later display.
 
     #+BEGIN_SRC emacs-lisp :eval never
-      (cl-defmethod xymon-monitor-fetch ((this xymon-hello))
+      (cl-defmethod symon-monitor-fetch ((this symon-hello))
         (oref this who))
     #+END_SRC
 
@@ -223,14 +223,14 @@
     is playing, a swap monitor that hides when no swap is used, etc.
 
     #+BEGIN_SRC emacs-lisp :eval never
-      (cl-defmethod symon-monitor-display ((this xymon-custom-monitor))
+      (cl-defmethod symon-monitor-display ((this symon-custom-monitor))
         (thread-first
             (format "Hello, %s" (symon-monitor-value this))
           (propertize 'face 'compilation-info)))
     #+END_SRC
 
 
-   The default implementation of =xymon-monitor-display= is simliar
+   The default implementation of =symon-monitor-display= is simliar
    to the behavior of Symon, and suitable for many monitors -- you may
    not need your own method at all.
 
@@ -251,7 +251,7 @@
      - =:unit=.  A string; represents the unit the monitor is
        measuring.  Appended to the current monitor value.
 
-     For monitors based on =xymon-monitor-history=, additional
+     For monitors based on =symon-monitor-history=, additional
      graph-related options are supported:
 
      - =:sparkline=.  A boolean.  When non-=nil=, appends a small
@@ -270,7 +270,7 @@
     determines /what/ it monitors.
 
     #+BEGIN_SRC emacs-lisp :eval never
-      (setq my/hello-monitor (xymon-hello :who user-login-name))
+      (setq my/hello-monitor (symon-hello :who user-login-name))
     #+END_SRC
 
 
