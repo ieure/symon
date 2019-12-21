@@ -1,3 +1,29 @@
+;;; symon-network.el --- Network monitor for Symon   -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2019  Ian Eure
+
+;; Author: Ian Eure <ian@retrospec.tv>
+;; Keywords: hardware
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;
+
+;;; Code:
+
 (require 'symon-monitor)
 (require 'symon-darwin)
 (require 'symon-windows)
@@ -6,7 +32,7 @@
 (defclass symon-linux-network-rx (symon-monitor-history)
   ((default-display-opts
      :type list
-     :initform '(:index "RX:" 
+     :initform '(:index "RX:"
                         :unit "KB/s"
                         :upper-bound 300
                         :lower-bound 0))))
@@ -28,7 +54,7 @@
 (defclass symon-linux-network-tx (symon-monitor-history)
   ((default-display-opts
      :type list
-     :initform '(:index "RX:" 
+     :initform '(:index "RX:"
                         :unit "KB/s"
                         :upper-bound 100
                         :lower-bound 0))))
@@ -48,3 +74,4 @@
           (setf last-value tx))))))
 
 (provide 'symon-network)
+;;; symon-network.el ends here
