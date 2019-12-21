@@ -251,68 +251,5 @@ This method is called when activating `symon-mode'."
          (concat " "
                  (propertize " " 'display (symon-sparkline-graph sparkline (ring-elements (symon-monitor-history this)))))))))
 
-
-
-(ert-deftest symon-monitor--test-plist-merge ()
-  ;; Unique keys are added
-  (should (equal '(:a 1 :b 2) (symon-monitor--plist-merge '(:a 1) '(:b 2))))
-
-  ;; Duplicate keys are replaced
-  (should (equal '(:a 2) (symon-monitor--plist-merge '(:a 1) '(:a 2))))
-
-  ;; Recursive lists are merged
-  (should (equal '(:a (:foo 1 :bar 2)) (symon-monitor--plist-merge '(:a (:foo 1))
-                                                                   '(:a (:bar 2))))))
-
-
-
-(ert-deftest symon-monitor--test-fetch-error ()
-  (defclass symon-monitor--test-fetch-error (symon-monitor) nil)
-  (cl-defmethod symon-monitor-fetch ((this symon-monitor--test-fetch-error))
-    (error "Testing"))
-
-  (let ((m (symon-monitor--test-fetch-error)))
-    (should (null (memq 'err (oref m fetch-errors-warned))))
-    (should (null (symon-monitor-update m)))
-    (should (memq 'error (oref m fetch-errors-warned)))))
-
-(ert-deftest symon-monitor--test-display-opts ()
-  (defclass symon-monitor--test-display-opts (symon-monitor) nil)
-
-  (let ((m (symon-monitor--test-display-opts)))
-    (should (slot-boundp m 'display-opts))
-    (should (null (oref m display-opts))))
-
-  (let ((m (symon-monitor--test-display-opts :display-opts '(:foo 1))))
-    (should (slot-boundp m 'display-opts))
-    (should (equal '(:foo 1) (oref m display-opts)))))
-
-(ert-deftest symon-monitor--test-default-display-opts ()
-  (defclass symon-monitor--test-default-display-opts (symon-monitor)
-    ((default-display-opts :initform '(:foo 1))))
-
-  (let ((m (symon-monitor--test-default-display-opts)))
-    (should (slot-boundp m 'display-opts))
-    (should (equal '(:foo 1) (oref m display-opts))))
-
-  (let ((m (symon-monitor--test-default-display-opts :display-opts '(:bar 2))))
-    (should (slot-boundp m 'display-opts))
-    (should (equal '(:foo 1 :bar 2) (oref m display-opts)))))
-
-
-
-(ert-deftest symon-monitor-history--test-update ()
-  (defclass symon-monitor-history--test-update (symon-monitor-history)
-    ((n :initform 0)))
-
-  (cl-defmethod symon-monitor-fetch ((this symon-monitor-history--test-update))
-    (incf (slot-value this 'n)))
-
-  (let ((m (symon-monitor-history--test-update)))
-    (should (= 1 (symon-monitor-update m)))
-    (should (= 2 (symon-monitor-update m)))
-    (should (= (symon-monitor-update m) (symon-monitor-value m)))
-    (should (equal '(3 2 1) (seq-take (ring-elements (symon-monitor-history m)) 3)))))
-
 (provide 'symon-monitor)
 ;;; symon-monitor.el ends here
