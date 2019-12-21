@@ -128,8 +128,8 @@ monitor from:
 (defvar symon--timer-objects  nil)
 (defvar symon--faulty-monitors nil)
 
-(defun symon--instantiate (monitor-or-symbol)
   "Create an instance."
+(defun symon--instantiate* (monitor-or-symbol)
   (cond
    ;; Instance of symon-monitor class.
    ((and (object-p monitor-or-symbol) (object-of-class-p monitor-or-symbol symon-monitor))
@@ -144,11 +144,12 @@ monitor from:
    ;; Expression which can evaluate to one of the above.
    ((consp monitor-or-symbol) (symon--instantiate (eval monitor-or-symbol)))))
 
-(defun symon--setup (monitors)
+(defun symon--instantiate (pages-of-monitors)
+  "Instatiate Symon monitors in PAGES-OF-MONITORS."
   (thread-first
-      (lambda (page)
-        (remove-if-not #'identity (mapcar #'symon--instantiate page)))
-    (mapcar symon-monitors)))
+      (lambda (page-of-monitors)
+        (remove-if-not #'identity (mapcar #'symon--instantiate* page-of-monitors)))
+    (mapcar pages-of-monitors)))
 
 (defun symon--initialize ()
   (unless symon-monitors
