@@ -87,14 +87,8 @@ BEFORE enabling `symon-mode'.*"
 Each outer list is a page.  Symon rotates through pages as it redisplays.
 
 Each inner list is a list of monitors.  Members of that list
-are anything which `symon--instantiate' knows how to produce a
-monitor from:
-
-- A symbol which is bound to a monitor class.  The class will be
-  instantiated with no arguments.
-- A symbol which is bound to a monitor object.
-- A monitor object itself (not recommended).
-- An expression which evaluates to one of the above."
+are anything which `symon--instantiate*' knows how to produce a
+monitor from."
 
   :group 'symon
   :risky t
@@ -128,8 +122,16 @@ monitor from:
 (defvar symon--timer-objects  nil)
 (defvar symon--faulty-monitors nil)
 
-  "Create an instance."
 (defun symon--instantiate* (monitor-or-symbol)
+  "Create an instance of a monitor, from MONITOR-OR-SYMBOL.
+
+   MONITOR-OR-SYMBOL may be:
+
+   - A symbol which is bound to a monitor class.  The class will be
+     instantiated with no arguments.
+   - A symbol which is bound to a monitor object.
+   - A monitor object itself.
+   - An expression which evaluates to one of the above."
   (cond
    ;; Instance of symon-monitor class.
    ((and (object-p monitor-or-symbol) (object-of-class-p monitor-or-symbol symon-monitor))
@@ -152,6 +154,7 @@ monitor from:
     (mapcar pages-of-monitors)))
 
 (defun symon--initialize ()
+  "Prepare Symon to monitor the system."
   (unless symon-monitors
     (warn "`symon-monitors' is empty."))
   (let ((monitors (symon--setup symon-monitors)))
@@ -167,18 +170,20 @@ monitor from:
     (add-hook 'kill-emacs-hook 'symon--cleanup)))
 
 (defun symon--cleanup ()
+  "Clean up monitors, disabling Symon."
   (remove-hook 'kill-emacs-hook 'symon--cleanup)
   (remove-hook 'pre-command-hook 'symon--display-end)
   (mapc #'cancel-timer symon--timer-objects)
   (mapc #'symon-monitor-cleanup (symon--flatten symon--active-monitors)))
 
 (defun symon--display-catching-errors (monitor)
+  "Display MONITOR, trapping errors, if they occur."
   (condition-case e
       (symon-monitor-display monitor)
     (error (symon-monitor--maybe-warn monitor e 'fetch-errors-warned "Fetch"))))
 
 (defun symon--display-update ()
-  "update symon display"
+  "Display current page of monitors in the minibuffer."
   (unless (or cursor-in-echo-area (active-minibuffer-window))
     (let ((message-log-max nil)  ; do not insert to *Messages* buffer
           (display-string nil))
@@ -213,8 +218,6 @@ monitor from:
   :init-value nil
   :global t
   (if symon-mode (symon--initialize) (symon--cleanup)))
-
-;; + provide
 
 (provide 'symon)
 
