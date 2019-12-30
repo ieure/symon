@@ -157,7 +157,7 @@ monitor from."
   "Prepare Symon to monitor the system."
   (unless symon-monitors
     (warn "`symon-monitors' is empty."))
-  (let ((monitors (symon--setup symon-monitors)))
+  (let ((monitors (symon--instantiate symon-monitors)))
     (mapc #'symon-monitor-setup (symon--flatten monitors))
     (setq symon--active-monitors monitors
           symon--display-active nil
