@@ -144,7 +144,8 @@ monitor from."
     (make-instance monitor-or-symbol))
 
    ;; Expression which can evaluate to one of the above.
-   ((consp monitor-or-symbol) (symon--instantiate (eval monitor-or-symbol)))))
+   ((consp monitor-or-symbol) (symon--instantiate* (eval monitor-or-symbol)))
+   (t (error "Don't know how to instantiate type `%s'" (type-of monitor-or-symbol)))))
 
 (defun symon--instantiate (pages-of-monitors)
   "Instatiate Symon monitors in PAGES-OF-MONITORS."
