@@ -1,6 +1,6 @@
 ;;; symon-cpu.el --- CPU monitor for Symon           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords: hardware
@@ -94,13 +94,16 @@
       (symon-monitor--linux-read-lines
        "/proc/stat" (lambda (str) (mapcar 'read (split-string str nil t))) '("cpu"))
     (with-slots (last-total-ticks last-idle-ticks) this
-      (let ((total (apply '+ cpu)) (idle (nth 3 cpu)))
-        (prog1 (let ((total-diff (- total last-total-ticks))
-                     (idle-diff (- idle last-idle-ticks)))
-                 (unless (zerop total-diff)
-                   (/ (* (- total-diff idle-diff) 100) total-diff)))
-          (setf last-total-ticks total
-                last-idle-ticks idle))))))
+      (let* ((total (apply '+ cpu))
+             (total-diff (- total last-total-ticks))
+             (idle (nth 3 cpu))
+             (idle-diff (- idle last-idle-ticks)))
+        (if (zerop total-diff)
+            ;; If ticks haven't increased since last fetch, return the last value.
+            (symon-monitor-value this)
+          (prog1 (/ (* (- total-diff idle-diff) 100) total-diff)
+            (setf last-total-ticks total
+                  last-idle-ticks idle)))))))
 
  ;; macOS
 
