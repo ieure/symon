@@ -1,6 +1,6 @@
 ;;; symon-sparkline.el --- Sparkline generators    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 ;; Copyright (C) 2015 zk_phi
 
 ;; Author: zk_phi
@@ -94,7 +94,7 @@ rendering."
               (when (and (<= 0 y) (< y height))
                 (dotimes (dy thickness)
                   (aset image-data
-                        (+ (* (- height (+ y dy) 1) width) x)
+                        (+ (* (max 0 (- height (+ y dy) 1)) width) x)
                         t)))))
           `(image :type xbm :data ,image-data :ascent ,ascent
                   :height ,height :width ,width))))))
