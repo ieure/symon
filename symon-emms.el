@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(require 'symon)
+(require 'symon-monitor)
 
 (defgroup symon-emms nil
   "EMMS monitor for Symon."
@@ -46,6 +46,7 @@
   "Face for playing time."
   :group 'symon-emms)
 
+;;;###autoload
 (defclass symon-emms (symon-monitor) nil)
 
 (cl-defmethod symon-monitor-fetch ((this symon-emms))
