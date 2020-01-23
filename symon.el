@@ -145,13 +145,14 @@ monitor from."
 
    ;; Expression which can evaluate to one of the above.
    ((consp monitor-or-symbol) (symon--instantiate* (eval monitor-or-symbol)))
-   (t (error "Don't know how to instantiate type `%s'" (type-of monitor-or-symbol)))))
+   ((null monitor-or-symbol) monitor-or-symbol)
+   (t (error "Don't know how to instantiate type `%s' %s" (type-of monitor-or-symbol) monitor-or-symbol))))
 
 (defun symon--instantiate (pages-of-monitors)
   "Instatiate Symon monitors in PAGES-OF-MONITORS."
   (thread-first
       (lambda (page-of-monitors)
-        (remove-if-not #'identity (mapcar #'symon--instantiate* page-of-monitors)))
+        (cl-remove-if #'null (mapcar #'symon--instantiate* page-of-monitors)))
     (mapcar pages-of-monitors)))
 
 (defun symon--initialize ()
