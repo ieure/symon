@@ -50,7 +50,7 @@
 (defclass symon-emms (symon-monitor) nil)
 
 (cl-defmethod symon-monitor-fetch ((this symon-emms))
-  (when (and (featurep 'emms) (not emms-player-stopped-p))
+  (when (and (featurep 'emms) emms-player-playing-p)
     (emms-playlist-current-selected-track)))
 
 (defun symon-emms--merge (track)
