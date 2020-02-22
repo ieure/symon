@@ -34,6 +34,10 @@
 
 ;;; Change Log:
 
+;; Xymon
+;; 2.0.0 Largely rewritten, Windows and Darwin support dropped.
+;;
+;; Symon:
 ;; 1.0.0 first release
 ;; 1.1.0 add option symon-sparkline-thickness
 ;; 1.1.1 add symon-windows-page-file-monitor
@@ -55,43 +59,45 @@
 
 ;; core
 
+(defun symon--valid-rate (_ value)
+  (and (integerp value) (> value 0)))
+
+(defun symon--set-and-restart (sym value)
+  (set-default sym value)
+  (when symon-mode
+    (symon-mode -1)
+    (symon-mode 1)))
+
 (defcustom symon-refresh-rate 4
-  "refresh rate of symon display. *set this option BEFORE
-  enabling `symon-mode'.*"
-  :group 'symon)
+  "How often to obtain new values from the monitors."
+  :group 'symon
+  :type 'integer
+  :set 'symon--set-and-restart)
 
 (defcustom symon-delay 2
-  "delay in seconds until symon is displayed. *set this option
-BEFORE enabling `symon-mode'.*"
-  :group 'symon)
+  "Delay in seconds until Symon appears."
+  :group 'symon
+  :type 'integer
+  :set 'symon--set-and-restart)
 
 (defcustom symon-monitors
-  (list (cond ((memq system-type '(gnu/linux cygwin))
-         '(symon-memory-linux
-           symon-cpu-linux
-           symon-network-rx-linux
-           symon-network-tx-linux))
-        ((memq system-type '(darwin))
-         '(symon-memory-darwin
-           symon-cpu-darwin
-           symon-network-rx-darwin
-           symon-network-tx-darwin))
-        ((memq system-type '(windows-nt))
-         '(symon-memory-windows
-           symon-cpu-windows
-           symon-network-rx-windows
-           symon-network-tx-windows))))
+  (list '((symon-time :display-opts '(:format "%a %b %d %H:%M"))
+          (symon-battery)
+          (symon-cpu-linux :display-opts '(:sparkline (:type gridded)))
+          (symon-memory-linux)))
 
   "List of list of monitors.
 
-Each outer list is a page.  Symon rotates through pages as it redisplays.
+Each outer list is a page.  Symon rotates through pages as it
+refreshes (every SYMON-REFRESH-RATE seconds).
 
-Each inner list is a list of monitors.  Members of that list
-are anything which `symon--instantiate*' knows how to produce a
-monitor from."
+Each inner list is a list of monitors.  Members of that list may
+be the symbol of a monitor; a direct monitor value; or an
+expression which evaluates to one of those things."
 
   :group 'symon
   :risky t
+  :set 'symon--set-and-restart
   :type '(repeat
           (repeat :tag "Page of monitors"
                   (choice

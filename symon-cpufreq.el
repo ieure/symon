@@ -1,6 +1,6 @@
 ;;; symon-cpufreq.el --- CPU frequency monitor for Symon  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords:
@@ -25,7 +25,6 @@
 ;;; Code:
 
 (require 'symon-monitor)
-(require 'symon-darwin)
 (require 'symon-cpu)
 
  ;; Linux

@@ -1,6 +1,6 @@
 ;;; symon-memory.el --- Memory monitor for Symon     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords: hardware
@@ -25,8 +25,6 @@
 ;;; Code:
 
 (require 'symon-monitor)
-(require 'symon-windows)
-(require 'symon-darwin)
 
  ;; Linux
 
@@ -43,22 +41,6 @@
     (if memavailable
         (/ (* (- memtotal memavailable) 100) memtotal)
       (/ (* (- memtotal (+ memfree buffers cached)) 100) memtotal))))
-
- ;; macOS
-
-(defclass symon-memory-darwin (symon-monitor-darwin symon-monitor-history)
-  nil)
-
-(cl-defmethod symon-monitor-fetch ((this symon-memory-darwin))
-  (symon--read-value-from-process-buffer "mem"))
-
- ;; Windows
-
-(defclass symon-memory-windows (symon-monitor-windows symon-monitor-history)
-  nil)
-
-(cl-defmethod symon-monitor-fetch ((this symon-memory-windows))
-  (symon--read-value-from-process-buffer "mem"))
 
 (provide 'symon-memory)
 ;;; symon-memory.el ends here

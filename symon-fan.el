@@ -1,6 +1,6 @@
 ;;; symon-fan.el --- Symon fan monitor              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords: hardware
@@ -26,10 +26,14 @@
 
 (require 'symon-monitor)
 
+(defgroup symon-fan nil
+  "Display fan speed in Symon."
+  :group 'symon)
+
 (defface symon-fan-face
   '((t :inherit default))
   "Face for Symon fan display."
-  :group 'symon)
+  :group 'symon-fan)
 
 ;;;###autoload
 (defun symon-fan-fans ()

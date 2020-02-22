@@ -4,7 +4,13 @@
   :END:
 
   Symon (pronounced "simon") is a tiny system monitor which displays
-  system information in the echo area when Emacs is idle.
+  system information in the echo area when Emacs is has been idle for
+  a few seconds.
+
+  This is a fork of [[https://github.com/zk-phi/symon][Symon]] which has been largely rewritten.  It fixes
+  a number of bugs and shortcomings and emphasizes customizability and
+  code reuse.
+
 
 ** Screenshot
    :PROPERTIES:
@@ -23,33 +29,25 @@
 
    #+BEGIN_SRC emacs-lisp :eval never
      (use-package symon
-       :straight (:host github
-                        :repo "ieure/symon"))
+       :straight (:host github :repo "ieure/symon")
+       :config (symon-mode 1))
    #+END_SRC
 
    If you don’t use =straight=, you can clone the repo, open it with
    dired, and =M-x install-package-from-buffer RET=.
 
+*** What about putting it in MELPA?
+    :PROPERTIES:
+    :ID:       f6836d38-f028-4da8-a7ee-175b079aa644
+    :END:
 
-** Usage
-   :PROPERTIES:
-   :ID:       6517036f-a482-4823-9954-b0446914d038
-   :END:
-
-   Load =symon=
-
-   #+BEGIN_SRC emacs-lisp :eval never
-     (require 'symon)
-   #+END_SRC
-
-   and turn on =symon-mode=.
-
-   #+BEGIN_SRC emacs-lisp :eval never
-     (symon-mode)
-   #+END_SRC
+    I don’t have much interest in doing this.  While I think MELPA’s
+    goals of having only high-quality curated packages is laudable,
+    and the bar to contributing is reasonable, it’s still higher than
+    I care to clear.
 
 
-** Customization
+** Configuration
    :PROPERTIES:
    :ID:       71529d50-a063-43d6-b5a2-bc9f9bbc7e6a
    :END:
@@ -59,11 +57,19 @@
     :ID:       b0864da4-e91a-494c-b87e-f563330b1bb1
     :END:
 
-    - =symon-monitors= :: The monitors used to display system information.
+    - =symon-monitors= :: List of list of monitors.
 
-    - =symon-refresh-rate= :: Refresh rate of Symon display.
+    Each outer list is a page.  Symon rotates through pages as it refreshes
+    (every =symon-refresh-rate= seconds).
+
+    Each inner list is a list of monitors.  Members of that list may
+    be the symbol of a monitor; a direct monitor value; or an
+    expression which evaluates to one of those things.
 
     - =symon-delay= :: Delay in seconds until Symon appears.
+
+    - =symon-refresh-rate= :: How often to obtain new values from the
+         monitors.
 
 
 ** Standard monitors
@@ -72,15 +78,14 @@
    :END:
 
    - [[file:symon-battery.el][=symon-battery=]] :: Displays battery and charging status.
-        Platform-independent.
-   - [[file:symon-cpu.el][=symon-cpu=]] :: Monitors CPU load on Linux, macOS, and Windows.
-   - [[file:symon-cpufreq.el][=symon-cpufreq=]] :: Monitors CPU frequency. Linux only.
-   - [[file:symon-fan.el][=symon-fan=]] :: Monitors fan speed.  Linux only.
-   - [[file:symon-memory.el][=symon-memory=]] :: Displays memory usage on Linux, macOS, and
-        Windows.
-   - [[file:symon-swap.el][=symon-swap=]] :: Displays swap usage on Linux, macOS, and Windows.
-   - [[file:symon-temp.el][=symon-temp=]] :: Monitors temperatures.  Linux only.
-   - [[file:symon-time.el][=symon-time=]] :: Display a clock in Symon.  Platform-independent.
+   - [[file:symon-cpu.el][=symon-cpu=]] :: Monitors CPU load.
+   - [[file:symon-cpufreq.el][=symon-cpufreq=]] :: Monitors CPU frequency.
+   - [[file:symon-fan.el][=symon-fan=]] :: Monitors fan speed.
+   - [[file:symon-memory.el][=symon-memory=]] :: Displays memory usage.
+   - [[file:symon-swap.el][=symon-swap=]] :: Displays swap usage.
+   - [[file:symon-temp.el][=symon-temp=]] :: Monitors temperatures.
+   - [[file:symon-time.el][=symon-time=]] :: Display a clock in Symon.
+
 
 ** Creating new monitors
    :PROPERTIES:
@@ -92,8 +97,9 @@
 
    - =symon-monitor= :: This is the base class, suitable for simple
         non-graphical monitors, such as a time display.
-   - =symon-monitor-history= :: This class keeps a history of monitor
-     values and graphs them.
+
+   - =symon-monitor-history= :: This class keeps a history of values
+        for creating graphs.
 
 *** Defining the class
     :PROPERTIES:
@@ -106,16 +112,17 @@
       (defclass symon-hello (symon-monitor))
     #+END_SRC
 
-    If your monitor needs to state or customization options, those get
+    If your monitor needs to state or customization options, those are
     stored in slots of the object.  This allows reuse of monitor code
-    -- for example, if you write a monitor which displays free space
-    on a filesystem, you can specify the mountpoint path in the
-    constructor, which lets you monitor multiple disks.
+    — for example, if you write a monitor which displays free space on
+    a filesystem, you can specify the mountpoint path in the
+    constructor, which lets you monitor multiple disks with the same
+    code.
 
     #+BEGIN_SRC emacs-lisp :eval never
       (defclass symon-hello (symon-monitor)
-        ((greeting :initform "Hello"
-                   :initarg :greeting)))
+        ((greeting :initform "Hello"          ; Default value
+                   :initarg :greeting)))      ; Keyword for customizing.
     #+END_SRC
 
 
@@ -124,15 +131,11 @@
     :ID:       b96fa238-ba27-4c6b-9087-8584221ef318
     :END:
 
-    The =symon-monitor-fetch= generic method evaluates to the current
-    value of the monitor.  Fetch and display are orthogonal,
-    asynchronous operations.  The fetch method should /only/ obtain
-    and return the value -- it shouldn’t concern itself with display
-    at all.
-
-    The base =symon-monitor= class handles fetching new values
-    periodically (based on the =:inteval= option), so you only need to
-    return the value.
+    The =symon-monitor-fetch= generic function evaluates to the
+    current value of the monitor.  Fetch and display are orthogonal,
+    asynchronous operations.  This function should /only/ obtain and
+    return the value — it shouldn’t concern itself with display or
+    periodic refresh at all.
 
     #+BEGIN_SRC emacs-lisp :eval never
       (cl-defmethod symon-monitor-fetch ((this symon-hello))
@@ -151,8 +154,8 @@
     string, or setting text properties like the display face.
 
     If this method evaluates to a falsey value (=nil= or =""= (the
-    empty string)), the monitor won’t be displayed at all.  This is
-    useful for conditional display of monitors, such as a media player
+    empty string)), the monitor won’t be displayed.  This is useful
+    for conditional display of monitors, such as a media player
     monitor that hides when nothing is playing, a swap monitor that
     hides when no swap is used, etc.
 
@@ -165,19 +168,20 @@
     #+END_SRC
 
    The default implementation of =symon-monitor-display= is generic
-   and suitable for many monitors -- you may not need your own method
+   and suitable for many monitors — you may not need your own method
    at all.
 
 
-**** Display options
+**** Display options & defaults
      :PROPERTIES:
      :ID:       4c2c35bf-9d16-4401-a226-ce8419c85c0e
      :END:
 
-     Behavior of the display function can be customized per instance,
-     by setting the =display-opts= slot when the object is created.
-     The =display-opts= slot is /only/ for user-specified options --
-     when creating a monitor, the two are merged.
+     In order to supply default to control display, the monitor should
+     use the =default-display-opts= plist.  Users may set the
+     =display-opts= plist per instance; the base class will merge the
+     two.  This allows users to specify only the changes they want,
+     instead of repeating the defaults.
 
      The following options are supported by the default
      =symon-monitor-display= method:
@@ -201,7 +205,8 @@
       #+END_SRC
 
       The sparkline options are passed directly to the
-      =symon-sparkline= constructor; see its documentation for a more information.
+      =symon-sparkline= constructor; see its documentation for a more
+      information.
 
 
 *** Constructing the monitor
@@ -223,7 +228,5 @@
    :END:
 
    - zk_phi is the original author of Symon.
-   - [[https://github.com/pierre-lecocq][Pierre Lecocq]] added darwin support.
+   - [[https://github.com/pierre-lecocq][Pierre Lecocq]] added Darwin support.
    - Ian Eure substantially rewrote and extended Symon.
-
-   Thanks!

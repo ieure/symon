@@ -25,10 +25,6 @@
 ;;; Code:
 
 (require 'symon-monitor)
-(require 'symon-windows)
-(require 'symon-darwin)
-
- ;; Linux
 
 (defconst symon-cpu--linux-path
   "/sys/devices/system/cpu/")
@@ -104,21 +100,6 @@
           (prog1 (/ (* (- total-diff idle-diff) 100) total-diff)
             (setf last-total-ticks total
                   last-idle-ticks idle)))))))
-
- ;; macOS
-
-(defclass symon-cpu-darwin (symon-monitor-darwin symon-monitor-history) nil)
-
-(cl-defmethod symon-monitor-fetch ((this symon-cpu-darwin))
-  (symon--read-value-from-process-buffer "cpu"))
-
-
- ;; Windows
-
-(defclass symon-cpu-windows (symon-monitor-windows symon-monitor-history) nil)
-
-(cl-defmethod symon-monitor-fetch ((this symon-cpu-windows))
-  (symon--read-value-from-process-buffer "cpu"))
 
 (provide 'symon-cpu)
 ;;; symon-cpu.el ends here

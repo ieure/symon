@@ -1,6 +1,6 @@
 ;;; symon-network.el --- Network monitor for Symon   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords: hardware
@@ -25,8 +25,6 @@
 ;;; Code:
 
 (require 'symon-monitor)
-(require 'symon-darwin)
-(require 'symon-windows)
 
 ;; FIXME this is broken
 (defclass symon-linux-network-rx (symon-monitor-history)

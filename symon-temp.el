@@ -1,6 +1,6 @@
 ;;; symon-temp.el --- Temperature monitor using hwmon  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2020  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords: hardware
@@ -37,10 +37,14 @@
 (require 'symon-monitor)
 (require 's)
 
+(defgroup symon-temp nil
+  "Display sensor temperature in Symon."
+  :group 'symon)
+
 (defface symon-temp-face
   '((t :inherit default))
   "Face for Symon temperature display."
-  :group 'symon)
+  :group 'symon-temp)
 
 (defun symon-temp--sensors (device)
   "Return a list of all sensors under DEVICE."
