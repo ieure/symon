@@ -1,10 +1,10 @@
 ;;; symon.el --- tiny graphical system monitor     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 zk_phi
+;; Copyright (C) 2015, 2020 zk_phi, 2019-2020 Ian Eure.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
+;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -16,9 +16,9 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-;; Author: zk_phi
-;; URL: http://hins11.yu-yake.com/
-;; Version: 1.2.0
+;; Author: ieure
+;; URL: http://githhub.com/ieure/symon
+;; Version: 2.0.0
 
 ;;; Commentary:
 
