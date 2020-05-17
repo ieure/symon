@@ -59,9 +59,6 @@
 
 ;; core
 
-(defun symon--valid-rate (_ value)
-  (and (integerp value) (> value 0)))
-
 (defun symon--set-and-restart (sym value)
   (set-default sym value)
   (when symon-mode
