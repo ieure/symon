@@ -7,9 +7,10 @@
   system information in the echo area when Emacs is has been idle for
   a few seconds.
 
-  This is a fork of [[https://github.com/zk-phi/symon][Symon]] which has been largely rewritten.  It fixes
-  a number of bugs and shortcomings and emphasizes customizability and
-  code reuse.
+  This is a fork of zk_phi’s [[https://github.com/zk-phi/symon][Symon,]] which has been largely rewritten.
+  It fixes a number of bugs and shortcomings and emphasizes
+  customizability and code reuse, but also drops support for non-Linux
+  platforms.  It works nicely with EXWM.
 
 
 ** Screenshot
@@ -95,29 +96,29 @@
    Symon uses EIEIO classes to implement monitors, and provides two
    base classes to build on:
 
-   - =symon-monitor= :: This is the base class, suitable for simple
-        non-graphical monitors, such as a time display.
+   - =symon-monitor= :: This is the base class, suitable for monitors
+        that display a single value.
 
-   - =symon-monitor-history= :: This class keeps a history of values
-        for creating graphs.
+   - =symon-monitor-history= :: This class keeps a history of values,
+        and can create mini graphs of them.
 
 *** Defining the class
     :PROPERTIES:
     :ID:       674fab64-0c0c-4ff8-8a89-47c4b2afcfa6
     :END:
 
-    The simplest monitor is defined as:
+    The simplest monitor is:
 
     #+BEGIN_SRC emacs-lisp :eval never
       (defclass symon-hello (symon-monitor))
     #+END_SRC
 
-    If your monitor needs to state or customization options, those are
-    stored in slots of the object.  This allows reuse of monitor code
-    — for example, if you write a monitor which displays free space on
-    a filesystem, you can specify the mountpoint path in the
-    constructor, which lets you monitor multiple disks with the same
-    code.
+    If your monitor needs to hold state or user configuration options,
+    those are stored in slots of the object.  This separates the code
+    which does the monitoring from the thing being monitored — for
+    example, if you write a disk space monitor, you can specify the
+    mountpoint in the constructor, which lets you monitor multiple
+    disks with the same code.
 
     #+BEGIN_SRC emacs-lisp :eval never
       (defclass symon-hello (symon-monitor)
@@ -132,10 +133,10 @@
     :END:
 
     The =symon-monitor-fetch= generic function evaluates to the
-    current value of the monitor.  Fetch and display are orthogonal,
-    asynchronous operations.  This function should /only/ obtain and
-    return the value — it shouldn’t concern itself with display or
-    periodic refresh at all.
+    current value of the monitor.  Fetching and displaying are
+    orthogonal, asynchronous operations.  The fetch function should
+    /only/ obtain and return the value — it shouldn’t concern itself
+    with display or periodic refresh at all.
 
     #+BEGIN_SRC emacs-lisp :eval never
       (cl-defmethod symon-monitor-fetch ((this symon-hello))
@@ -177,11 +178,11 @@
      :ID:       4c2c35bf-9d16-4401-a226-ce8419c85c0e
      :END:
 
-     In order to supply default to control display, the monitor should
-     use the =default-display-opts= plist.  Users may set the
-     =display-opts= plist per instance; the base class will merge the
-     two.  This allows users to specify only the changes they want,
-     instead of repeating the defaults.
+     Default options should be stored as a plist in the monitor’s
+     =default-display-opts= slot.  Users may set the =display-opts=
+     plist per instance; the base class will merge the two.  This
+     allows users to specify only the changes they want, instead of
+     repeating the defaults.
 
      The following options are supported by the default
      =symon-monitor-display= method:
