@@ -97,7 +97,7 @@
 (defun symon-temp-find-name (name)
   "Find hwmon named NAME if there is one."
   (cl-loop for device in (file-expand-wildcards "/sys/class/hwmon/hwmon*")
-           for mon-name = (symon-monitor--slurp (concat device "/name"))
+           for mon-name = (ignore-errors (symon-monitor--slurp (concat device "/name")))
            when (string= name mon-name)
            return device))
 
