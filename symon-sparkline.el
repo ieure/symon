@@ -32,7 +32,7 @@ rendering."
   :group 'symon)
 
 (defclass symon-sparkline ()
-  ((height :type integer :initarg :height :initform 11
+  ((height :type integer :initarg :height :initform (default-font-height)
            :documentation "Graph height, in pixels.")
    (width :type integer :initarg :width :initform 80
           :documentation "Graph width, in pixels.")
