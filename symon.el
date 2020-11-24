@@ -46,9 +46,6 @@
 
 ;;; Code:
 
-(require 'ring)
-(require 'symon-sparkline)
-
 (defconst symon-version "2.0.0")
 
 (defgroup symon nil

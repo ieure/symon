@@ -31,6 +31,7 @@
 rendering."
   :group 'symon)
 
+;;;###autoload
 (defclass symon-sparkline ()
   ((height :type integer :initarg :height :initform (default-font-height)
            :documentation "Graph height, in pixels.")

@@ -1,6 +1,6 @@
 ;;; symon-monitor.el --- Monitor classes             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019 Ian Eure
+;; Copyright (C) 2019, 2020 Ian Eure
 ;; Copyright (C) 2015 zk_phi
 
 ;; Author: zk_phi
@@ -26,8 +26,7 @@
 
 ;;; Code:
 
-(require 'symon-sparkline)
-(require 'ert)
+(require 'ring)
 
  ;; I/O helpers
 
