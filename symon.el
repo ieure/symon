@@ -98,12 +98,6 @@ expression which evaluates to one of those things."
                    (symbol :tag "Class or object")
                    (sexp)))))
 
-;; page-file monitor
-
-(defcustom symon-windows-page-file-upper-bound 2000
-  "upper-bound of sparkline for page file usage."
-  :group 'symon)
-
 ;; + utilities
 ;;   + general
 
