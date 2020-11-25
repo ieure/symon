@@ -31,7 +31,6 @@
 rendering."
   :group 'symon)
 
-;;;###autoload
 (defclass symon-sparkline ()
   ((height :type integer :initarg :height :initform (default-font-height)
            :documentation "Graph height, in pixels.")
@@ -110,6 +109,7 @@ rendering."
           (push v new-args))))
     (nreverse new-args)))
 
+;;;###autoload
 (defun symon-sparkline (&rest args)
   "Construct a sparkline."
   (let ((sym (intern (concat "symon-sparkline-" (symbol-name (plist-get args :type))))))
