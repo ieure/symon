@@ -148,8 +148,8 @@ Subsequent errors of the same type are suppressed."))
           (error (symon-monitor--maybe-warn this error 'fetch-errors-warned "Update")))))
 
 (defun symon-monitor--plist-merge (defaults user)
-  (let ((opts (copy-list defaults))
-        (user (copy-list user)))
+  (let ((opts (cl-copy-list defaults))
+        (user (cl-copy-list user)))
     (while user
       (let ((k (pop user))
             (v (pop user)))

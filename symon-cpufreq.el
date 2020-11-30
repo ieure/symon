@@ -39,10 +39,10 @@
   (mapcar #'symon-cpu--freq cpus))
 
 (defun symon-cpu--minfreq (&optional cpus)
-  (/ (reduce #'min (mapcar #'car (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
+  (/ (cl-reduce #'min (mapcar #'car (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
 
 (defun symon-cpu--maxfreq (&optional cpus)
-  (/ (reduce #'max (mapcar #'cadr (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
+  (/ (cl-reduce #'max (mapcar #'cadr (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
 
 ;;;###autoload
 (defclass symon-cpufreq-linux (symon-monitor-history)
@@ -63,7 +63,7 @@
 (cl-defmethod symon-monitor-fetch ((this symon-cpufreq-linux))
   "Return average of all cores in MHz."
   (with-slots (cpus) this
-    (/ (reduce #'+ (mapcar #'caddr (symon-cpu--freqs cpus))) (length cpus) 1000.0)))
+    (/ (cl-reduce #'+ (mapcar #'caddr (symon-cpu--freqs cpus))) (length cpus) 1000.0)))
 
 (cl-defmethod symon-monitor-display ((this symon-cpufreq-linux))
   (with-slots (cpus) this

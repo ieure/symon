@@ -74,10 +74,10 @@
   (mapcar #'symon-cpu--freq cpus))
 
 (defun symon-cpu--minfreq (&optional cpus)
-  (/ (reduce #'min (mapcar #'car (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
+  (/ (cl-reduce #'min (mapcar #'car (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
 
 (defun symon-cpu--maxfreq (&optional cpus)
-  (/ (reduce #'max (mapcar #'cadr (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
+  (/ (cl-reduce #'max (mapcar #'cadr (symon-cpu--freqs (car (symon-cpu--cpus))))) 1000.0))
 
 (defclass symon-cpu-linux (symon-monitor-history)
   ((last-total-ticks :type integer :initform 0)
