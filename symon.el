@@ -58,7 +58,7 @@
 
 (defun symon--set-and-restart (sym value)
   (set-default sym value)
-  (when symon-mode
+  (when (and (boundp 'symon-mode) symon-mode)
     (symon-mode -1)
     (symon-mode 1)))
 
