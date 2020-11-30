@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'symon-monitor)
+(require 'cc-defs)
 
 (defconst symon-cpu--linux-path
   "/sys/devices/system/cpu/")
