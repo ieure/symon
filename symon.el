@@ -34,10 +34,9 @@
 
 ;;; Change Log:
 
-;; Xymon
-;; 2.0.0 Largely rewritten, Windows and Darwin support dropped.
 ;;
 ;; Symon:
+;; 2.0.0 Largely rewritten, Windows and Darwin support dropped.
 ;; 1.0.0 first release
 ;; 1.1.0 add option symon-sparkline-thickness
 ;; 1.1.1 add symon-windows-page-file-monitor
