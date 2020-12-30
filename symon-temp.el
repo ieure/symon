@@ -124,7 +124,7 @@ outputs, ex. /sys/class/hwmon/hwmon2")
    multiple sensors are specified, the average is displayed.")
 
    (default-display-opts :type list
-     :initform '(:unit "℃")))
+     :initform '(:unit "°")))
 
   :documentation
   "A Symon monitor for hwmon temperatures.")
