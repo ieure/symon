@@ -1,6 +1,6 @@
 ;;; symon-battery.el --- Battery monitor for symon   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Ian Eure
+;; Copyright (C) 2019, 2021  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords: hardware
@@ -58,10 +58,26 @@ an hour's charge."
   :group 'symon-battery)
 
 (defun symon-battery--capacity-face (charging percent)
+  "Return monitor face based on CHARGING and PERCENT.
+
+This is used when sysfs doesn't provide an estimate for the time
+left, because there's no way to determine the discharge rate.
+
+If the battery is being charged, returns
+`symon-battery-charging-face'
+
+If the battery is discharging, and has >= 60% left, returns
+`symon-battery-full-face'.
+
+If the battery is discharging, and has >= 20% left, returns
+`symon-battery-medium-face'.
+
+If the battery is discharging, and has beween 0-19% left, returns
+`symon-battery-low-face'."
   (if charging 'symon-battery-charging-face
     (cond
-     ((>= percent 50) 'symon-battery-full-face)
-     ((>= percent 25) 'symon-battery-medium-face)
+     ((>= percent 60) 'symon-battery-full-face)
+     ((>= percent 20) 'symon-battery-medium-face)
      (t 'symon-battery-low-face))))
 
 (defun symon-battery--time-face (charging time-left)
