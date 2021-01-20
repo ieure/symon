@@ -114,8 +114,11 @@ estimated time to depletion, returns `symon-battery-low-face'."
 
 (cl-defmethod symon-monitor-fetch ((this symon-battery))
   "Return battery status."
-  (when battery-status-function
-    (funcall battery-status-function)))
+  ;; If there are errors, ignore them -- it might be the user swapping
+  ;; removeable batteries.
+  (ignore-errors
+    (when battery-status-function
+      (funcall battery-status-function))))
 
 (cl-defmethod symon-battery--indicator ((this symon-battery) charging)
   "Return the battery charging or discharging indicator."
