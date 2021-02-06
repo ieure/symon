@@ -37,6 +37,7 @@
   "Face for Symon screen brightness display."
   :group 'symon-blight)
 
+;;;###autoload
 (defclass symon-blight (symon-monitor)
   ((blight :initarg :blight
            :documentation "Blight instance to monitor.")
