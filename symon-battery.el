@@ -130,7 +130,7 @@ estimated time to depletion, returns `symon-battery-low-face'."
 (cl-defmethod symon-monitor-display ((this symon-battery))
   "Return the display text for the battery monitor."
   (when-let ((status (symon-monitor-value this)))
-    (let ((charging (string= (downcase (cdr (assoc ?L status))) "ac"))
+    (let ((charging (member (downcase (cdr (assoc ?L status))) '("ac" "on-line")))
           (percent (read (cdr (assoc ?p status))))
           (time-left (cdr (assoc ?t status))))
       (thread-first
