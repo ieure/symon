@@ -1,6 +1,6 @@
 ;;; symon.el --- tiny graphical system monitor     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015, 2020 zk_phi, 2019-2020 Ian Eure.
+;; Copyright (C) 2015, 2020, 2021 zk_phi, 2019-2020 Ian Eure.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -44,6 +44,9 @@
 ;; 1.2.0 add paging feature
 
 ;;; Code:
+
+(require 'eieio)
+(require 'symon-monitor)
 
 (defconst symon-version "2.0.0")
 
@@ -102,9 +105,9 @@ expression which evaluates to one of those things."
 
 (defun symon--flatten (lst)
   "flatten LST"
-  (if (consp lst)
-      (apply 'nconc (mapcar 'symon--flatten lst))
-    (list lst)))
+  (cond ((null lst) lst)
+        ((consp lst) (apply 'nconc (mapcar 'symon--flatten lst)))
+        (t (list lst))))
 
 ;; + symon core
 
@@ -127,7 +130,7 @@ expression which evaluates to one of those things."
    - An expression which evaluates to one of the above."
   (cond
    ;; Instance of symon-monitor class.
-   ((and (object-p monitor-or-symbol) (object-of-class-p monitor-or-symbol symon-monitor))
+   ((and (eieio-object-p monitor-or-symbol) (object-of-class-p monitor-or-symbol symon-monitor))
     monitor-or-symbol)
 
    ;; Symbol bound to a symon-monitor class.

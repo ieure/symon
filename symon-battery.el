@@ -112,7 +112,7 @@ estimated time to depletion, returns `symon-battery-low-face'."
                                      :discharging-indicator "v")))
   :documentation "Battery monitor for Symon.")
 
-(cl-defmethod symon-monitor-fetch ((this symon-battery))
+(cl-defmethod symon-monitor-fetch ((_ symon-battery))
   "Return battery status."
   ;; If there are errors, ignore them -- it might be the user swapping
   ;; removeable batteries.

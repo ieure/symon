@@ -1,6 +1,6 @@
 ;;; symon-emms.el --- Symon monitor for EMMS         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Ian Eure
+;; Copyright (C) 2020, 2021  Ian Eure
 
 ;; Author: Ian Eure <ian@retrospec.tv>
 ;; Keywords: multimedia
@@ -25,6 +25,9 @@
 ;;; Code:
 
 (require 'symon-monitor)
+(require 's)
+(require 'emms)
+(require 'emms-playing-time)
 
 (defgroup symon-emms nil
   "EMMS monitor for Symon."

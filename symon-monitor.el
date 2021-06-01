@@ -1,6 +1,6 @@
 ;;; symon-monitor.el --- Monitor classes             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019, 2020 Ian Eure
+;; Copyright (C) 2019, 2020, 2021 Ian Eure
 ;; Copyright (C) 2015 zk_phi
 
 ;; Author: zk_phi
@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'ring)
+(require 'eieio)
 
  ;; I/O helpers
 
@@ -92,6 +93,7 @@
 
  ;; Class definitions
 
+;;;###autoload
 (defclass symon-monitor ()
   ((interval :type integer
              :initform 4
@@ -232,11 +234,11 @@ This method is called when activating `symon-mode'."
     (when-let ((sparkline-opts (plist-get display-opts :sparkline)))
       (setf sparkline (apply #'symon-sparkline sparkline-opts)))))
 
-(cl-defmethod symon-monitor-history ((this symon-monitor-history))
+(cl-defmethod symon-monitor-history-history ((this symon-monitor-history))
   (oref this history))
 
 (cl-defmethod symon-monitor-value ((this symon-monitor-history))
-  (car (ring-elements (symon-monitor-history this))))
+  (car (ring-elements (symon-monitor-history-history this))))
 
 (cl-defmethod symon-monitor-update :around ((this symon-monitor-history))
   (ring-insert (oref this history) (symon-monitor-fetch this)))
@@ -248,7 +250,7 @@ This method is called when activating `symon-mode'."
        (cl-call-next-method)
        (when (and sparkline (window-system))
          (concat " "
-                 (propertize " " 'display (symon-sparkline-graph sparkline (ring-elements (symon-monitor-history this)))))))))
+                 (propertize " " 'display (symon-sparkline-graph sparkline (ring-elements (symon-monitor-history-history this)))))))))
 
 (provide 'symon-monitor)
 ;;; symon-monitor.el ends here
