@@ -1,6 +1,6 @@
 ;;; symon-sparkline.el --- Sparkline generators    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019, 2020  Ian Eure
+;; Copyright (C) 2019, 2020, 2021  Ian Eure
 ;; Copyright (C) 2015 zk_phi
 
 ;; Author: zk_phi
@@ -26,11 +26,16 @@
 
 ;;; Code:
 
+(require 'eieio)
+(require 'cl-generic)
+
 (defcustom symon-sparkline-use-xpm (eq system-type 'darwin)
   "When non-nil, convert sparklines to xpm from xbm before
 rendering."
+  :type 'boolean
   :group 'symon)
 
+;;;###autoload
 (defclass symon-sparkline ()
   ((height :type integer :initarg :height :initform (truncate (* .75 (default-font-height)))
            :documentation "Graph height, in pixels.")
@@ -85,8 +90,7 @@ rendering."
                (width-per-sample (/ width (float num-samples)))
                (samples (apply 'vector data))
                (sample nil)
-               (y nil)
-               (ix nil))
+               (y nil))
           (dotimes (x width)
             (setq sample (aref samples (floor (/ x width-per-sample))))
             (when (numberp sample)

@@ -73,7 +73,7 @@
   (unless (get-buffer symon--process-buffer-name)
     (let ((proc (start-process-shell-command
                  "symon-process" symon--process-buffer-name cmd))
-          (filter (lambda (proc str)
+          (filter (lambda (_ str)
                     (when (get-buffer symon--process-buffer-name)
                       (with-current-buffer symon--process-buffer-name
                         (when (and (string-match "-" str) (search-backward "----" nil t))
