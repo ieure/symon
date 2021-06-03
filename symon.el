@@ -46,6 +46,8 @@
 ;;; Code:
 
 (require 'eieio)
+(require 'cl-seq)
+(require 'subr-x)
 (require 'symon-monitor)
 
 (defconst symon-version "2.0.0")
