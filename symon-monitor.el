@@ -232,7 +232,7 @@ This method is called when activating `symon-mode'."
   (with-slots (history-size display-opts history sparkline) this
     (setf history (symon-monitor--make-history-ring history-size))
     (when-let ((sparkline-opts (plist-get display-opts :sparkline)))
-      (setf sparkline (apply #'symon-sparkline sparkline-opts)))))
+      (setf sparkline (apply #'symon-sparkline-new sparkline-opts)))))
 
 (cl-defmethod symon-monitor-history-history ((this symon-monitor-history))
   (oref this history))

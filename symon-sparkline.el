@@ -114,7 +114,7 @@ rendering."
     (nreverse new-args)))
 
 ;;;###autoload
-(defun symon-sparkline (&rest args)
+(defun symon-sparkline-new (&rest args)
   "Construct a sparkline."
   (let ((sym (intern (concat "symon-sparkline-" (symbol-name (plist-get args :type))))))
     (unless (fboundp sym)
